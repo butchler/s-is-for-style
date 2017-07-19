@@ -6,12 +6,17 @@
   "scripts": {
     "prepublish": "npm run build",
     "build": "babel src -d lib",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "Adam Buechler",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "babel-cli": "^6.24.1",
-    "babel-preset-env": "^1.6.0"
+    "babel-preset-env": "^1.6.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
+    "jest": "^20.0.4"
+  },
+  "dependencies": {
+    "css-in-js-utils": "^1.0.3"
   }
 }

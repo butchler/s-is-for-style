@@ -1,3 +1,5 @@
+import { cssifyObject } from 'css-in-js-utils';
+
 const createSheet = () => {
   // TODO: Add data attribute.
   // TODO: Remove any existing server-rendered sheets.
@@ -12,20 +14,39 @@ const createSheet = () => {
     return `class-${id}`;
   };
 
+  //const ruleList = [];
+
   return {
-    addStyleRule: (pseudoSelector) => {
+    insertStyleRuleAfter: (previousRule, pseudoSelector, declarations) => {
       // TODO: Reuse unused rules.
       const className = getUniqueId();
-      const ruleString = `.${className}${pseudoSelector || ''}{}`;
-      const index = sheet.insertRule(ruleString, sheet.cssRules.length);
+      const selector = `.${className}${pseudoSelector}`;
+      const cssText = cssifyObject(declarations);
+      const ruleString = `${selector}{${cssText}}`;
+      const beforeIndex = previousRule ? (previousRule.index + 1) : sheet.cssRules.length;
+      const index = sheet.insertRule(ruleString, beforeIndex);
 
       return {
         className,
-        rule: sheet.cssRules[index],
-        remove: () => {
-          // TODO: Mark rule as unused.
-        },
+        index,
+        removed: false,
+        pseudoSelector,
       };
+    },
+    setStyleRuleDeclarations: (rule, declarations) => {
+      const cssText = cssifyObject(declarations);
+      sheet.cssRules[rule.index].style.cssText = cssText;
+    },
+    removeRule: (rule) => {
+      // Mark rule for removal.
+      rule.removed = true;
+      // TODO: Remove rules in batches.
+    },
+    getClassName: (rule) => {
+      return rule.className;
+    },
+    getPseudoSelector: (rule) => {
+      return rule.pseudoSelector;
     },
   };
 };
