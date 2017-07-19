@@ -1,0 +1,19 @@
+{
+  "name": "s-react-example",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "css-in-js-utils": "^1.0.3",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "react-scripts": "1.0.10",
+    "s-sheet-client": "^0.1.0",
+    "s-react": "^0.1.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "s-react",
+  "version": "0.1.0",
+  "description": "Yet another CSS-in-JS library",
+  "module": "lib/index.js",
+  "scripts": {
+    "prepublish": "babel ./src -d ./lib",
+    "build": "babel src -d lib",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Adam Buechler",
+  "license": "ISC",
+  "dependencies": {
+    "s-core": "^0.1.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0"
+  }
+}
