@@ -12,7 +12,7 @@ const createSheet = () => {
   const sheet = styleTag.sheet;
 
   let idIndex = 0;
-  const getUniqueId = () => {
+  const getUniqueClassName = () => {
     const id = idIndex;
     idIndex += 1;
     return `class-${id}`;
@@ -21,7 +21,7 @@ const createSheet = () => {
   const allRules = [];
   let numUnusedRules = 0;
 
-  const removedAllUnusedRules = () => {
+  const removeAllUnusedRules = () => {
     for (let i = 0; i < allRules.length; i++) {
       const rule = allRules[i];
 
@@ -29,73 +29,103 @@ const createSheet = () => {
         allRules.splice(i, 1);
         sheet.deleteRule(i);
         i -= 1;
+      } else {
+        rule.index = i;
       }
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      invariant(allRules.every((rule, index) => rule.index === index), 'Indexes are valid');
     }
   };
 
-  return {
-    insertStyleRuleAfter: (previousRule, pseudoSelector, declarations) => {
-      invariant(sheet.cssRules.length === allRules.length, 'Internal # of rules matches actual # of rules');
+  const appendRule = (ruleDescription) => {
+    const index = sheet.insertRule(getRuleCSS(ruleDescription), sheet.cssRules.length);
+    const cssRule = sheet.cssRules[index];
+    const rule = {
+      index,
+      cssRule,
+      ruleType: ruleDescription.ruleType,
+      ruleKey: ruleDescription.ruleKey,
+      isUnused: false,
+    };
 
-      // Find insert index.
-      // TODO: Reuse unused rules.
-      let beforeIndex = previousRule ? allRules.indexOf(previousRule) : allRules.length;
+    allRules.push(rule);
 
-      invariant(beforeIndex >= 0, 'Found previousRule');
+    invariant(sheet.cssRules.length === allRules.length, 'Internal # of rules matches actual # of rules');
 
-      const className = getUniqueId();
-      const selector = `.${className}${pseudoSelector}`;
-      const cssText = cssifyObject(declarations);
-      const ruleString = `${selector}{${cssText}}`;
-
-      const ruleIndex = sheet.insertRule(ruleString, beforeIndex);
-      const style = sheet.cssRules[ruleIndex].style;
-
-      const rule = {
-        className,
-        isUnused: false,
-        pseudoSelector,
-        style,
-      };
-
-      allRules.splice(ruleIndex, 0, rule);
-
-      if (process.env.NODE_ENV !== 'development') {
-        invariant(allRules.every((rule, index) => sheet.cssRules[index].style === rule.style), 'Internal and actual rule lists match');
-      }
-
-      return rule;
-    },
-    setStyleRuleDeclarations: (rule, declarations) => {
-      const cssText = cssifyObject(declarations);
-      rule.style.cssText = cssText;
-    },
-    removeRule: (rule) => {
-      invariant(sheet.cssRules.length === allRules.length, 'Internal # of rules matches actual # of rules');
-
-      // Mark rule for removal.
-      rule.isUnused = true;
-
-      numUnusedRules += 1;
-
-      if (numUnusedRules >= REMOVE_UNUSED_RULES_BATCH_SIZE) {
-        removedAllUnusedRules();
-        numUnusedRules = 0;
-      }
-
-      invariant(sheet.cssRules.length === allRules.length, 'Internal # of rules matches actual # of rules');
-
-      if (process.env.NODE_ENV !== 'development') {
-        invariant(allRules.every((rule, index) => sheet.cssRules[index].style === rule.style), 'Internal and actual rule lists match');
-      }
-    },
-    getClassName: (rule) => {
-      return rule.className;
-    },
-    getPseudoSelector: (rule) => {
-      return rule.pseudoSelector;
-    },
+    return rule;
   };
+
+  const removeRule = (rule) => {
+    if (rule.ruleType === 'style') {
+      rule.cssRule.style.cssText = '';
+    } else {
+      throw new Error('Unsupported rule type');
+    }
+
+    // Mark rule for removal.
+    rule.isUnused = true;
+
+    numUnusedRules += 1;
+
+    if (numUnusedRules >= REMOVE_UNUSED_RULES_BATCH_SIZE) {
+      removeAllUnusedRules();
+      numUnusedRules = 0;
+    }
+
+    invariant(sheet.cssRules.length === allRules.length, 'Internal # of rules matches actual # of rules');
+  };
+
+  const replaceRule = (rule, ruleDescription) => {
+    sheet.deleteRule(rule.index);
+    rule.index = sheet.insertRule(getRuleCSS(ruleDescription), rule.index);
+    rule.cssRule = sheet.cssRules[rule.index];
+    rule.ruleType = ruleDescription.ruleType;
+    rule.ruleKey = ruleDescription.ruleKey;
+    rule.isUnused = false;
+  };
+
+  const replaceRuleBlock = (rule, ruleDescription) => {
+    if (rule.ruleType === 'style') {
+      rule.cssRule.style.cssText = getRuleBlockCSS(ruleDescription);
+    } else {
+      throw new Error('Unsupported rule type');
+    }
+  };
+
+  const getRuleType = (rule) => rule.ruleType;
+  const getRuleKey = (rule) => rule.ruleKey;
+
+  return {
+    getUniqueClassName,
+    appendRule,
+    removeRule,
+    replaceRule,
+    replaceRuleBlock,
+    getRuleType,
+    getRuleKey,
+  };
+};
+
+const getRuleCSS = (ruleDescription) => {
+  const { ruleType, ruleKey } = ruleDescription;
+
+  if (ruleType === 'style') {
+    return `.${ruleKey}{${getRuleBlockCSS(ruleDescription)}}`;
+  } else {
+    throw 'Unsupported rule type';
+  }
+};
+
+const getRuleBlockCSS = (ruleDescription) => {
+  const { ruleType, ruleBlock } = ruleDescription;
+
+  if (ruleType === 'style') {
+    return cssifyObject(ruleBlock);
+  } else {
+    throw 'Unsupported rule type';
+  }
 };
 
 export default createSheet;

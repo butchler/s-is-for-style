@@ -1,47 +1,58 @@
-import convertStylesObjectToRuleDescriptionList from './convertStylesObjectToRuleDescriptionList';
+import convertStyleDescriptionToRuleDescriptions from './convertStylesObjectToRuleDescriptionList';
 
-const createInstance = (sheet) => {
-  const rules = [];
+const createStyleInstance = (sheet) => {
+  const ruleInstances = [];
+  const className = sheet.getUniqueClassName();
 
-  const getClassNames = () =>
-    rules.map(sheet.getClassName).join(' ');
-
-  const setStyles = (nextStylesObject) => {
-    const nextRuleDescriptions = convertStylesObjectToRuleDescriptionList(nextStylesObject);
+  const setStyleState = (styleDescription) => {
+    const ruleDescriptions = convertStyleDescriptionToRuleDescriptions(className, styleDescription);
+    const maxLength = Math.max(ruleDescriptions.length, ruleInstances.length);
 
     // Add and update rules.
-    for (let i = 0; i < nextRuleDescriptions.length; i++) {
-      const rule = rules[i];
-      const nextRuleDescription = nextRuleDescriptions[i];
-
-      // TODO: Support @media/@keyframes/@font-face rule types.
-      if (rule && sheet.getPseudoSelector(rule) === nextRuleDescription.pseudoSelector) {
-        sheet.setStyleRuleDeclarations(rules[i], nextRuleDescription.declarations);
-      } else {
-        if (rule) {
-          sheet.removeRule(rule);
-        }
-
-        const previousRule = i === 0 ? undefined : rules[i - 1];
-        rules[i] = sheet.insertStyleRuleAfter(
-          previousRule,
-          nextRuleDescription.pseudoSelector,
-          nextRuleDescription.declarations
-        );
+    for (let i = 0; i < maxLength; i++) {
+      // Create new rule instances if necessary.
+      if (i >= ruleInstances.length) {
+        ruleInstances[i] = createRuleInstance(sheet);
       }
+
+      // Reset the state of unneeded rule instances.
+      const setRuleState = ruleInstances[i];
+      const ruleDescription = i < ruleDescriptions.length ? ruleDescriptions[i] : null;
+      setRuleState(ruleDescription);
     }
 
-    // Remove extra/unnused rules.
-    for (let i = nextRuleDescriptions.length; i < rules.length; i++) {
-      sheet.removeRule(rules[i]);
-    }
+    ruleInstances.length = ruleDescriptions.length;
 
-    rules.length = nextRuleDescriptions.length;
-
-    return getClassNames();
+    return className;
   };
 
-  return setStyles;
+  return setStyleState;
 };
 
-export default createInstance;
+const createRuleInstance = (sheet) => {
+  let rule;
+
+  const setRuleState = (nextRuleDescription) => {
+    if (rule && !nextRuleDescription) {
+      sheet.removeRule(rule);
+      rule = undefined;
+    } else if (!rule && nextRuleDescription) {
+      rule = sheet.appendRule(nextRuleDescription);
+    } else if (rule) {
+      // TODO: Check if changing rule key is supported.
+      if (
+        nextRuleDescription.ruleType !== sheet.getRuleType(rule) ||
+        nextRuleDescription.ruleKey !== sheet.getRuleKey(rule)
+      ) {
+        sheet.replaceRule(rule, nextRuleDescription);
+      } else {
+        // Update rule block
+        sheet.replaceRuleBlock(rule, nextRuleDescription);
+      }
+    }
+  };
+
+  return setRuleState;
+};
+
+export default createStyleInstance;
