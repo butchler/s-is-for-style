@@ -16,17 +16,17 @@ class App extends Component {
   }
 
   render() {
-    const color = this.state.red ? 'red' : 'blue';
-
     return (
       <S
         tag="button"
-        style={{
-          color,
+        style={this.state.red ? {
+          color: 'red',
           ':hover': {
-            border: `3px solid ${color}`,
+            border: '3px solid red',
           },
-          border: `3px solid black`,
+          border: '3px solid black',
+        } : {
+          color: 'blue',
         }}
         onClick={this.onClick}
         sheet={this.sheet}
