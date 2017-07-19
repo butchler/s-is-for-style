@@ -16,10 +16,23 @@ class App extends Component {
   }
 
   render() {
-    return (
+    const buttons = [];
+
+    for (let i = 0; i < 1000; i++) {
+      buttons.push(<MyButton key={i} red={this.state.red} onClick={this.onClick} sheet={this.sheet} />);
+      //buttons.push(<MyButtonInline key={i} red={this.state.red} onClick={this.onClick} sheet={this.sheet} />);
+    }
+
+    return <div>{buttons}</div>;
+  }
+}
+
+function MyButton({ red, onClick, sheet }) {
+  return (
+    <div>
       <S
         tag="button"
-        style={this.state.red ? {
+        style={red ? {
           color: 'red',
           ':hover': {
             border: '3px solid red',
@@ -28,13 +41,31 @@ class App extends Component {
         } : {
           color: 'blue',
         }}
-        onClick={this.onClick}
-        sheet={this.sheet}
+        onClick={onClick}
+        sheet={sheet}
       >
         test
       </S>
-    );
-  }
+    </div>
+  );
+}
+
+function MyButtonInline({ red, onClick }) {
+  return (
+    <div>
+      <button
+        style={red ? {
+          color: 'red',
+          border: '3px solid black',
+        } : {
+          color: 'blue',
+        }}
+        onClick={onClick}
+      >
+        test
+      </button>
+    </div>
+  );
 }
 
 export default App;
