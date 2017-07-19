@@ -1,5 +1,7 @@
 {
 	"devDependencies": {
+		"eslint": "^4.2.0",
+		"eslint-plugin-react": "^7.1.0",
 		"lerna": "^2.0.0"
 	}
 }
