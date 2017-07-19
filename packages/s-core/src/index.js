@@ -47,11 +47,10 @@ const createRuleInstance = (sheet) => {
     } else if (!rule && nextRuleDescription) {
       rule = sheet.appendRule(nextRuleDescription);
     } else if (rule) {
+      const { ruleType, ruleKey } = sheet.getRuleDescription(rule);
+
       // TODO: Check if changing rule key is supported.
-      if (
-        nextRuleDescription.ruleType !== sheet.getRuleType(rule) ||
-        nextRuleDescription.ruleKey !== sheet.getRuleKey(rule)
-      ) {
+      if (nextRuleDescription.ruleType !== ruleType || nextRuleDescription.ruleKey !== ruleKey) {
         sheet.replaceRule(rule, nextRuleDescription);
       } else {
         // Update rule block

@@ -45,8 +45,7 @@ const createSheet = () => {
     const rule = {
       index,
       cssRule,
-      ruleType: ruleDescription.ruleType,
-      ruleKey: ruleDescription.ruleKey,
+      ruleDescription,
       isUnused: false,
     };
 
@@ -61,6 +60,7 @@ const createSheet = () => {
     if (rule.ruleType === 'style') {
       rule.cssRule.style.cssText = '';
     } else {
+      // TODO: Use fallback on production
       throw new Error('Unsupported rule type');
     }
 
@@ -79,23 +79,24 @@ const createSheet = () => {
 
   const replaceRule = (rule, ruleDescription) => {
     sheet.deleteRule(rule.index);
-    rule.index = sheet.insertRule(getRuleCSS(ruleDescription), rule.index);
+    // TODO: Wrap insertRule calls with try/catch?
+    sheet.insertRule(getRuleCSS(ruleDescription), rule.index);
     rule.cssRule = sheet.cssRules[rule.index];
-    rule.ruleType = ruleDescription.ruleType;
-    rule.ruleKey = ruleDescription.ruleKey;
+    rule.ruleDescription = ruleDescription;
     rule.isUnused = false;
   };
 
   const replaceRuleBlock = (rule, ruleDescription) => {
+    // TODO: Use shallow equality to check if rule needs to be updated.
     if (rule.ruleType === 'style') {
       rule.cssRule.style.cssText = getRuleBlockCSS(ruleDescription);
+      rule.ruleDescription = ruleDescription;
     } else {
       throw new Error('Unsupported rule type');
     }
   };
 
-  const getRuleType = (rule) => rule.ruleType;
-  const getRuleKey = (rule) => rule.ruleKey;
+  const getRuleDescription = (rule) => rule.ruleDescription;
 
   return {
     getUniqueClassName,
@@ -103,8 +104,7 @@ const createSheet = () => {
     removeRule,
     replaceRule,
     replaceRuleBlock,
-    getRuleType,
-    getRuleKey,
+    getRuleDescription,
   };
 };
 
