@@ -30,7 +30,15 @@ class S extends Component {
   }
 
   render() {
-    const { tag, className, style, ...otherProps } = this.props;
+    const {
+      tag,
+      className,
+      // Exclude style and sheet from props.
+      // TODO: Pull sheet from context instead of props.
+      style,
+      sheet,
+      ...otherProps
+    } = this.props;
     const Tag = tag || 'div';
     const combinedClassName = (
       (className || '') +
@@ -47,6 +55,7 @@ S.propTypes = {
   style: PropTypes.object,
   className: PropTypes.string,
   children: PropTypes.node,
+  // TODO: Add sheet shape.
   //sheet: PropTypes.shape(sheetShape).isRequired,
   sheet: PropTypes.object.isRequired,
 };
