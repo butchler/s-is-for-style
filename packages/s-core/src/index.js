@@ -1,4 +1,5 @@
 import convertStyleDescriptionToRuleDescriptions from './convertStylesObjectToRuleDescriptionList';
+import invariant from 'invariant';
 
 const createStyleInstance = (sheet) => {
   const ruleInstances = [];
@@ -22,6 +23,13 @@ const createStyleInstance = (sheet) => {
     }
 
     ruleInstances.length = ruleDescriptions.length;
+
+    if (process.env.NODE_ENV !== 'production') {
+      invariant(
+        ruleInstances.every((instance, index) => index === 0 || instance.getRule().index > ruleInstances[index - 1].getRule().index),
+        'Source order of rules is preserved'
+      );
+    }
 
     return className;
   };
@@ -51,6 +59,8 @@ const createRuleInstance = (sheet) => {
       }
     }
   };
+
+  setRuleState.getRule = () => rule;
 
   return setRuleState;
 };

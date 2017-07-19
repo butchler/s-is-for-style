@@ -16,5 +16,7 @@
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
     "jest": "^20.0.4"
   },
-  "dependencies": {}
+  "dependencies": {
+    "invariant": "^2.2.2"
+  }
 }
