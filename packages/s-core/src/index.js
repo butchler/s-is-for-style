@@ -15,7 +15,9 @@ const createInstance = (sheet) => {
       const nextRuleDescription = nextRuleDescriptions[i];
 
       // TODO: Support @media/@keyframes/@font-face rule types.
-      if (!rule || sheet.getPseudoSelector(rule) !== nextRuleDescription.pseudoSelector) {
+      if (rule && sheet.getPseudoSelector(rule) === nextRuleDescription.pseudoSelector) {
+        sheet.setStyleRuleDeclarations(rules[i], nextRuleDescription.declarations);
+      } else {
         if (rule) {
           sheet.removeRule(rule);
         }
@@ -26,16 +28,15 @@ const createInstance = (sheet) => {
           nextRuleDescription.pseudoSelector,
           nextRuleDescription.declarations
         );
-      } else if (sheet.getPseudoSelector(rule) === nextRuleDescription.pseudoSelector) {
-        sheet.setStyleRuleDeclarations(rules[i], nextRuleDescription.declarations);
       }
     }
 
     // Remove extra/unnused rules.
     for (let i = nextRuleDescriptions.length; i < rules.length; i++) {
       sheet.removeRule(rules[i]);
-      delete rules[i];
     }
+
+    rules.length = nextRuleDescriptions.length;
 
     return getClassNames();
   };

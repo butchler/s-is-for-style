@@ -29,8 +29,6 @@ const createSheet = () => {
         allRules.splice(i, 1);
         sheet.deleteRule(i);
         i -= 1;
-      } else {
-        rule.index = i;
       }
     }
   };
@@ -39,28 +37,38 @@ const createSheet = () => {
     insertStyleRuleAfter: (previousRule, pseudoSelector, declarations) => {
       invariant(sheet.cssRules.length === allRules.length, 'Internal # of rules matches actual # of rules');
 
+      // Find insert index.
       // TODO: Reuse unused rules.
+      let beforeIndex = previousRule ? allRules.indexOf(previousRule) : allRules.length;
+
+      invariant(beforeIndex >= 0, 'Found previousRule');
+
       const className = getUniqueId();
       const selector = `.${className}${pseudoSelector}`;
       const cssText = cssifyObject(declarations);
       const ruleString = `${selector}{${cssText}}`;
-      const beforeIndex = previousRule ? (previousRule.index + 1) : sheet.cssRules.length;
-      const index = sheet.insertRule(ruleString, beforeIndex);
+
+      const ruleIndex = sheet.insertRule(ruleString, beforeIndex);
+      const style = sheet.cssRules[ruleIndex].style;
 
       const rule = {
         className,
-        index,
         isUnused: false,
         pseudoSelector,
+        style,
       };
 
-      allRules.splice(index, 0, rule);
+      allRules.splice(ruleIndex, 0, rule);
+
+      if (process.env.NODE_ENV !== 'development') {
+        invariant(allRules.every((rule, index) => sheet.cssRules[index].style === rule.style), 'Internal and actual rule lists match');
+      }
 
       return rule;
     },
     setStyleRuleDeclarations: (rule, declarations) => {
       const cssText = cssifyObject(declarations);
-      sheet.cssRules[rule.index].style.cssText = cssText;
+      rule.style.cssText = cssText;
     },
     removeRule: (rule) => {
       invariant(sheet.cssRules.length === allRules.length, 'Internal # of rules matches actual # of rules');
@@ -76,6 +84,10 @@ const createSheet = () => {
       }
 
       invariant(sheet.cssRules.length === allRules.length, 'Internal # of rules matches actual # of rules');
+
+      if (process.env.NODE_ENV !== 'development') {
+        invariant(allRules.every((rule, index) => sheet.cssRules[index].style === rule.style), 'Internal and actual rule lists match');
+      }
     },
     getClassName: (rule) => {
       return rule.className;
