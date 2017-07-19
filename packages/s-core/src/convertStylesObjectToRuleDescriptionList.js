@@ -1,45 +1,61 @@
-const convertStylesObjectToRuleDescriptionList = (stylesObject) => {
-  const ruleDescriptionList = [];
+const convertStyleDescriptionToRuleDescriptions = (
+  className,
+  styleDescription,
+  isTopLevel = true
+) => {
+  const ruleDescriptions = [];
   let baseDeclarations = undefined;
 
   // NOTE: This assumes that object key iteration preserves order.
-  const keys = Object.keys(stylesObject);
+  const keys = Object.keys(styleDescription);
   const length = keys.length;
 
   const keyIsNotBaseStyle = (i) => (
-    i >= length || keys[i].startsWith(':')
+    i >= length || keys[i].startsWith(':') || keys[i].startsWith('@')
   );
+
+  const addStyleRuleDescription = (pseudoSelector, declarations) => {
+    ruleDescriptions.push({
+      ruleType: 'style',
+      ruleKey: `${className}${pseudoSelector}`,
+      ruleBlock: declarations,
+    });
+  };
+
+  const addMediaRuleDescription = (mediaCondition, subRules) => {
+    ruleDescriptions.push({
+      ruleType: 'media',
+      ruleKey: mediaCondition,
+      ruleBlock: convertStyleDescriptionToRuleDescriptions(className, subRules, false),
+    });
+  };
 
   for (let i = 0; i < length; i++) {
     const key = keys[i];
 
-    // TODO: Support @-rules.
     if (key.startsWith(':')) {
-      ruleDescriptionList.push({
-        type: 'style',
-        pseudoSelector: key,
-        declarations: stylesObject[key],
-      });
+      addStyleRuleDescription(key, styleDescription[key]);
+    } else if (key.startsWith('@media')) {
+      // Only allow @ rules at the top level.
+      if (isTopLevel) {
+        addMediaRuleDescription(key, styleDescription[key]);
+      }
     } else {
       // Build up base styles.
       if (!baseDeclarations) {
         baseDeclarations = {};
       }
 
-      baseDeclarations[key] = stylesObject[key];
+      baseDeclarations[key] = styleDescription[key];
 
       if (keyIsNotBaseStyle(i + 1)) {
-        ruleDescriptionList.push({
-          type: 'style',
-          pseudoSelector: '',
-          declarations: baseDeclarations,
-        });
+        addStyleRuleDescription('', baseDeclarations);
         baseDeclarations = undefined;
       }
     }
   }
 
-  return ruleDescriptionList;
+  return ruleDescriptions;
 };
 
-export default convertStylesObjectToRuleDescriptionList;
+export default convertStyleDescriptionToRuleDescriptions;
