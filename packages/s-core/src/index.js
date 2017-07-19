@@ -4,41 +4,19 @@ const createInstance = (sheet) => {
   const getClassNames = () =>
     Object.keys(rules).map(key => rules[key].className).join(' ');
 
-  const initBaseRule = (declarations) => initRule('base', '', true, declarations);
-  const initPseudoRule = (pseudoSelector, declarations) => initRule(pseudoSelector, pseudoSelector, false, declarations);
-
-  const initRule = (ruleKey, pseudoSelector, skipPseudo, declarations) => {
-    Object.keys(declarations).forEach(propertyName => {
-      if (skipPseudo && propertyName.startsWith(':')) {
-        // skip pseudo selectors when adding base rule.
-        return;
-      } else {
-        if (!rules[ruleKey]) {
-          rules[ruleKey] = sheet.addStyleRule(pseudoSelector);
-        }
-
-        const propertyValue = declarations[propertyName];
-        rules[ruleKey].rule.style.setProperty(propertyName, propertyValue);
-      }
-    });
-  };
-
   const updateBaseRule = (declarations) => updateRule('base', '', true, declarations);
   const updatePseudoRule = (pseudoSelector, declarations) => updateRule(pseudoSelector, pseudoSelector, false, declarations);
 
   const updateRule = (ruleKey, pseudoSelector, skipPseudo, declarations) => {
-    if (!rules[ruleKey]) {
-      initRule(ruleKey, pseudoSelector, skipPseudo, declarations);
-      return;
-    }
+    if (rules[ruleKey]) {
+      // Remove unused declarations.
+      const style = rules[ruleKey].rule.style;
 
-    const style = rules[ruleKey].rule.style;
-
-    // Remove unused declarations.
-    for (let i = 0; i < style.length; i++) {
-      const propertyName = style[i];
-      if (!declarations.hasOwnProperty(propertyName)) {
-        style.removeProperty(propertyName);
+      for (let i = 0; i < style.length; i++) {
+        const propertyName = style[i];
+        if (!hasOwnProperty(declarations, propertyName)) {
+          rules[ruleKey].rule.style.removeProperty(propertyName);
+        }
       }
     }
 
@@ -50,8 +28,16 @@ const createInstance = (sheet) => {
       }
 
       const propertyValue = declarations[propertyName];
-      if (propertyValue !== style.getPropertyValue(propertyName)) {
-        style.setProperty(propertyName, propertyValue);
+      if (propertyValue !== undefined) {
+        if (!rules[ruleKey]) {
+          // Create rule if we don't have one already.
+          rules[ruleKey] = sheet.addStyleRule(pseudoSelector);
+        }
+
+        const style = rules[ruleKey].rule.style;
+        if (propertyValue !== style.getPropertyValue(propertyName)) {
+          style.setProperty(propertyName, propertyValue);
+        }
       }
     });
   };
@@ -62,44 +48,36 @@ const createInstance = (sheet) => {
   };
 
   // TODO: Support keyframes and media queries.
-  return {
-    add: (declarations) => {
-      Object.keys(declarations).forEach(key => {
-        if (key.startsWith(':')) {
-          const pseudoSelectorDeclarations = declarations[key];
-          initPseudoRule(key, pseudoSelectorDeclarations);
-        }
-      });
+  return function setStyles(styles) {
+    // Remove unnused pseudo selector rules.
+    Object.keys(rules).forEach(ruleKey => {
+      if (ruleKey.startsWith(':') && !hasOwnProperty(styles, ruleKey)) {
+        removeRule(ruleKey);
+      }
+    });
 
-      initBaseRule(declarations);
+    // Remove base rule if there are no properties.
+    // TODO: Also remove base rule even if there pseudo selectors, etc.
+    if (Object.keys(styles).length === 0) {
+      if (hasOwnProperty(rules, 'base')) {
+        removeRule('base');
+      }
+    }
 
-      return getClassNames();
-    },
-    update: (declarations) => {
-      // Remove unnused rules.
-      Object.keys(rules).forEach(ruleKey => {
-        if (ruleKey.startsWith(':') && !declarations.hasOwnProperty(ruleKey)) {
-          removeRule(ruleKey);
-        }
-      });
+    // Update pseudo selector rules.
+    Object.keys(styles).forEach(key => {
+      if (key.startsWith(':')) {
+        const pseudoSelectorDeclarations = styles[key];
+        updatePseudoRule(key, pseudoSelectorDeclarations);
+      }
+    });
 
-      Object.keys(declarations).forEach(key => {
-        if (key.startsWith(':')) {
-          const pseudoSelectorDeclarations = declarations[key];
-          updatePseudoRule(key, pseudoSelectorDeclarations);
-        }
-      });
+    updateBaseRule(styles);
 
-      updateBaseRule(declarations);
-
-      // TODO: Maybe remove base rule if there are no declarations?
-
-      return getClassNames();
-    },
-    remove: () => {
-      Object.keys(rules).forEach(removeRule);
-    },
+    return getClassNames();
   };
 };
+
+const hasOwnProperty = (object, property) => Object.prototype.hasOwnProperty.call(object, property);
 
 export default createInstance;

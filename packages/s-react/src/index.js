@@ -11,21 +11,22 @@ class S extends Component {
   }
 
   componentWillMount() {
-    this.instance = createInstance(this.props.sheet);
+    this.setStyles = createInstance(this.props.sheet);
 
     this.setState({
-      classNames: this.instance.add(this.props.style),
+      classNames: this.setStyles(this.props.style),
     });
   }
 
   componentWillReceiveProps(nextProps) {
-    const nextClassNames = this.instance.update(nextProps.style);
+    const nextClassNames = this.setStyles(nextProps.style);
 
     this.setState({ classNames: nextClassNames });
   }
 
   componentWillUnmount() {
-    this.instance.remove();
+    // Remove all styles.
+    this.setStyles(null);
   }
 
   render() {
