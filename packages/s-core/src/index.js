@@ -48,7 +48,7 @@ const createInstance = (sheet) => {
   };
 
   // TODO: Support keyframes and media queries.
-  return function setStyles(styles) {
+  const setStyles = (styles) => {
     // Remove unnused pseudo selector rules.
     Object.keys(rules).forEach(ruleKey => {
       if (ruleKey.startsWith(':') && !hasOwnProperty(styles, ruleKey)) {
@@ -76,8 +76,11 @@ const createInstance = (sheet) => {
 
     return getClassNames();
   };
+
+  return setStyles;
 };
 
-const hasOwnProperty = (object, property) => Object.prototype.hasOwnProperty.call(object, property);
+const _hasOwnProperty = ({}).hasOwnProperty;
+const hasOwnProperty = (object, property) => _hasOwnProperty.call(object, property);
 
 export default createInstance;
