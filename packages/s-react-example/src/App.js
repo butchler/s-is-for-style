@@ -38,6 +38,9 @@ function MyButton({ red, onClick, sheet }) {
             border: '3px solid red',
           },
           border: '3px solid black',
+          '@media (min-width: 100px)': {
+            color: 'green',
+          },
         } : {
           color: 'blue',
         }}
