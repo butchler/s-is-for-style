@@ -38,7 +38,24 @@ const createSheet = () => {
     }
 
     if (ruleType === 'style') {
-      rule.nativeRule.style.cssText = cssifyObject(nextRuleDescription.declarations);
+      const currentDeclarations = rule.ruleDescription.declarations || {};
+      const nextDeclarations = nextRuleDescription.declarations;
+      const currentProperties = Object.keys(currentDeclarations);
+      const nextProperties = Object.keys(nextDeclarations);
+
+      if (
+        currentProperties.length === nextProperties.length &&
+        currentProperties.every((property, i) => property === nextProperties[i])
+      ) {
+        // If all properties are the same and in the same order, update values dynamically.
+        for (let i = 0; i < nextProperties.length; i++) {
+          const property = nextProperties[i];
+          rule.nativeRule.style.setProperty(property, nextDeclarations[property]);
+        }
+      } else {
+        // Otherwise, just overwrite CSS so we can preserve order.
+        rule.nativeRule.style.cssText = cssifyObject(nextRuleDescription.declarations);
+      }
     } else if (ruleType === 'media') {
       if (!rule.ruleList) {
         rule.ruleList = createMediaRuleRuleList(rule.nativeRule);

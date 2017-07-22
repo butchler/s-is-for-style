@@ -15,10 +15,18 @@ class App extends Component {
     this.sheet = createSheet();
   }
 
+  componentWillUpdate() {
+    this.startTime = window.performance.now();
+  }
+
+  componentDidUpdate() {
+    console.log('updateTime:', window.performance.now() - this.startTime);
+  }
+
   render() {
     const buttons = [];
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 10000; i++) {
       buttons.push(<MyButton key={i} red={this.state.red} onClick={this.onClick} sheet={this.sheet} />);
       //buttons.push(<MyButtonInline key={i} red={this.state.red} onClick={this.onClick} sheet={this.sheet} />);
     }
@@ -48,7 +56,7 @@ function MyButton({ red, onClick, sheet }) {
   const style = red ? (
     {
       color: 'red',
-      border: '3px solid black',
+      //border: '3px solid black',
     }
   ) : (
     {
@@ -74,7 +82,7 @@ function MyButtonInline({ red, onClick }) {
   const style = red ? (
     {
       color: 'red',
-      border: '3px solid black',
+      //border: '3px solid black',
     }
   ) : (
     {
