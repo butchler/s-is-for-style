@@ -1,8 +1,10 @@
 import { cssifyObject } from 'css-in-js-utils';
 import convertStyleDescriptionToRuleDescriptions from './convertStyleDescriptionToRuleDescriptions';
-import createGlobalRuleList from './createGlobalRuleList';
+import createSheetRuleList from './createSheetRuleList';
+import createVirtualRuleList from './createVirtualRuleList';
 import createMediaRuleRuleList from './createMediaRuleRuleList';
 
+// TODO: Make a proper name generator.
 const makeGetUniqueClassName = () => {
   let idIndex = 0;
   const getUniqueClassName = () => {
@@ -14,19 +16,21 @@ const makeGetUniqueClassName = () => {
   return getUniqueClassName;
 };
 
-const createNativeSheet = () => {
+const injectStyleTag = () => {
   // TODO: Add data attribute.
   // TODO: Remove any existing server-rendered sheets.
   const styleTag = document.createElement('style');
+  styleTag.setAttribute('type', 'text/css');
   document.head.appendChild(styleTag);
-  return styleTag.sheet;
+  return styleTag;
 };
 
 const getEmptyRuleCSS = (ruleDescription) => `${ruleDescription.ruleKey}{}`;
 
 const createSheet = () => {
   const getUniqueClassName = makeGetUniqueClassName();
-  const nativeSheet = createNativeSheet();
+  const nativeSheet = injectStyleTag().sheet;
+  const sheetRuleList = createSheetRuleList(nativeSheet);
 
   const setRule = (ruleList, rule, nextRuleDescription) => {
     let { ruleType, ruleKey } = rule.ruleDescription;
@@ -94,20 +98,13 @@ const createSheet = () => {
   };
 
   const createStyleInstance = () => {
-    const ruleList = createGlobalRuleList(nativeSheet);
+    const ruleList = createVirtualRuleList(sheetRuleList);
     const className = getUniqueClassName();
 
     const setStyle = (styleDescription) => {
       const ruleDescriptions = convertStyleDescriptionToRuleDescriptions(className, styleDescription);
 
       setRules(ruleList, ruleDescriptions);
-
-      //if (process.env.NODE_ENV !== 'production') {
-        //invariant(
-          //ruleList.every((rule, index) => index === 0 || rule.index > ruleList[index - 1].index),
-          //'Source order of rules is preserved'
-        //);
-      //}
 
       //console.log(`Sheet text: ${[...nativeSheet.cssRules].map(rule => rule.cssText).join('\n')}`);
 
