@@ -1,9 +1,13 @@
 const convertStyleDescriptionToRuleDescriptions = (className, styleDescription) => {
+  if (!styleDescription) {
+    return [];
+  }
+
   const ruleDescriptions = [];
   let baseDeclarations = undefined;
 
   // NOTE: This assumes that object key iteration preserves order.
-  const keys = styleDescription ? Object.keys(styleDescription) : [];
+  const keys = Object.keys(styleDescription);
   const length = keys.length;
 
   const keyIsNotBaseStyle = (i) => (
