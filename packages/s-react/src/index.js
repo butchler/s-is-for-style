@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import createInstance from 's-core';
 
+// TODO: Allow getting element ref.
 class S extends Component {
   constructor() {
     super();
@@ -12,22 +12,22 @@ class S extends Component {
   }
 
   componentWillMount() {
-    this.setStyles = createInstance(this.props.sheet);
+    this.styleInstance = this.props.sheet.createStyleInstance();
 
     this.setState({
-      classNames: this.setStyles(this.props.style),
+      classNames: this.styleInstance.setStyle(this.props.style),
     });
   }
 
   componentWillReceiveProps(nextProps) {
-    const nextClassNames = this.setStyles(nextProps.style);
+    const nextClassNames = this.styleInstance.setStyle(nextProps.style);
 
     this.setState({ classNames: nextClassNames });
   }
 
   componentWillUnmount() {
     // Remove all styles.
-    this.setStyles(null);
+    this.styleInstance.setStyle(null);
   }
 
   render() {

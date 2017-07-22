@@ -28,44 +28,67 @@ class App extends Component {
 }
 
 function MyButton({ red, onClick, sheet }) {
+  //const style = red ? (
+    //{
+      //color: 'red',
+      //':hover': {
+        //border: '3px solid red',
+      //},
+      //border: '3px solid black',
+      //'@media (min-width: 500px)': {
+        //color: 'green',
+      //},
+    //}
+  //) : (
+    //{
+      //color: 'blue',
+    //}
+  //);
+
+  const style = red ? (
+    {
+      color: 'red',
+      border: '3px solid black',
+    }
+  ) : (
+    {
+      color: 'blue',
+    }
+  );
+
   return (
     <div>
       <S
         tag="button"
-        style={red ? {
-          color: 'red',
-          ':hover': {
-            border: '3px solid red',
-          },
-          border: '3px solid black',
-          '@media (min-width: 100px)': {
-            color: 'green',
-          },
-        } : {
-          color: 'blue',
-        }}
+        style={style}
         onClick={onClick}
         sheet={sheet}
       >
-        test
+        csscss
       </S>
     </div>
   );
 }
 
 function MyButtonInline({ red, onClick }) {
+  const style = red ? (
+    {
+      color: 'red',
+      border: '3px solid black',
+    }
+  ) : (
+    {
+      color: 'blue',
+    }
+  );
+
   return (
     <div>
       <button
-        style={red ? {
-          color: 'red',
-          border: '3px solid black',
-        } : {
-          color: 'blue',
-        }}
+        style={style}
         onClick={onClick}
       >
-        test
+        inline
       </button>
     </div>
   );
