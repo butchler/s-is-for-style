@@ -1,5 +1,5 @@
 {
-  "name": "s-sheet-client",
+  "name": "s-is-for-style",
   "version": "0.1.0",
   "description": "Yet another CSS-in-JS library",
   "module": "lib/index.js",
@@ -11,11 +11,12 @@
   "author": "Adam Buechler",
   "license": "ISC",
   "dependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-preset-env": "^1.6.0",
+    "css-in-js-utils": "^1.0.3",
     "invariant": "^2.2.2"
   },
   "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-preset-env": "^1.6.0",
     "jest": "^20.0.4"
   }
 }

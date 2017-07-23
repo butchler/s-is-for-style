@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "css-in-js-utils": "^1.0.3",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-scripts": "1.0.10",
     "s-react": "^0.1.0",
-    "s-sheet-client": "^0.1.0",
+    "s-is-for-style": "^0.1.0",
     "styletron-client": "^2.5.7",
     "styletron-utils": "^2.5.4"
   },
@@ -17,8 +16,5 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
-  },
-  "devDependencies": {
-    "jest": "^20.0.4"
   }
 }

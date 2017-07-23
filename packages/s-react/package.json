@@ -1,7 +1,7 @@
 {
   "name": "s-react",
   "version": "0.1.0",
-  "description": "Yet another CSS-in-JS library",
+  "description": "React binding for yet another CSS-in-JS library",
   "module": "lib/index.js",
   "scripts": {
     "prepublish": "babel ./src -d ./lib",

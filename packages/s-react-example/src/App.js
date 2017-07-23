@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import createSheet from 's-sheet-client';
+import { createClientSheet } from 's-is-for-style';
 import S from 's-react';
 import StyletronClient from 'styletron-client';
 import { injectStyle } from 'styletron-utils';
@@ -14,7 +14,7 @@ class App extends Component {
 
     this.onClick = () => this.setState(state => ({ red: !state.red }));
 
-    this.sheet = createSheet();
+    this.sheet = createClientSheet();
   }
 
   componentWillUpdate() {
@@ -28,7 +28,7 @@ class App extends Component {
   render() {
     const buttons = [];
 
-    for (let i = 0; i < 10000; i++) {
+    for (let i = 0; i < 1000; i++) {
       buttons.push(<MyButton key={i} red={this.state.red} onClick={this.onClick} sheet={this.sheet} />);
       //buttons.push(<MyButtonInline key={i} red={this.state.red} onClick={this.onClick} />);
       //buttons.push(<MyButtonStyletron key={i} red={this.state.red} onClick={this.onClick} />);

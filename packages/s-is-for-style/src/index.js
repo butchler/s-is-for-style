@@ -27,7 +27,7 @@ const injectStyleTag = () => {
 
 const getEmptyRuleCSS = (ruleDescription) => `${ruleDescription.ruleKey}{}`;
 
-const createSheet = () => {
+export const createClientSheet = () => {
   const getUniqueClassName = makeGetUniqueClassName();
   const nativeSheet = injectStyleTag().sheet;
   const sheetRuleList = createSheetRuleList(nativeSheet);
@@ -120,5 +120,3 @@ const createSheet = () => {
     createStyleInstance,
   };
 };
-
-export default createSheet;
