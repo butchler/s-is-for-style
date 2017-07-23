@@ -7,8 +7,10 @@
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-scripts": "1.0.10",
+    "s-react": "^0.1.0",
     "s-sheet-client": "^0.1.0",
-    "s-react": "^0.1.0"
+    "styletron-client": "^2.5.7",
+    "styletron-utils": "^2.5.4"
   },
   "scripts": {
     "start": "react-scripts start",
