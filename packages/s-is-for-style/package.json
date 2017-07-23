@@ -6,6 +6,7 @@
   "scripts": {
     "prepublish": "npm run build",
     "build": "babel src -d lib",
+    "watch": "babel --watch src -d lib",
     "test": "jest"
   },
   "author": "Adam Buechler",
