@@ -2,29 +2,8 @@ import { cssifyObject } from 'css-in-js-utils';
 import convertStyleDescriptionToRuleDescriptions from './convertStyleDescriptionToRuleDescriptions';
 import createSheet from './createSheet';
 import createMediaRuleRuleList from './createMediaRuleRuleList';
-
-// TODO: Make a proper name generator.
-const makeGetUniqueClassName = () => {
-  let idIndex = 0;
-  const getUniqueClassName = () => {
-    const id = idIndex;
-    idIndex += 1;
-    return `class-${id}`;
-  };
-
-  return getUniqueClassName;
-};
-
-const injectStyleTag = () => {
-  // TODO: Add data attribute.
-  // TODO: Remove any existing server-rendered sheets.
-  const styleTag = document.createElement('style');
-  styleTag.setAttribute('type', 'text/css');
-  document.head.appendChild(styleTag);
-  return styleTag;
-};
-
-const getEmptyRuleCSS = (ruleDescription) => `${ruleDescription.ruleKey}{}`;
+import makeGetUniqueClassName from './makeGetUniqueClassName';
+import injectStyleTag from './injectStyleTag';
 
 export const createClientSheet = () => {
   const getUniqueClassName = makeGetUniqueClassName();
@@ -119,3 +98,5 @@ export const createClientSheet = () => {
     createStyleInstance,
   };
 };
+
+const getEmptyRuleCSS = (ruleDescription) => `${ruleDescription.ruleKey}{}`;
