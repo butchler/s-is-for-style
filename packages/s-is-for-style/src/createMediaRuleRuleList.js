@@ -5,6 +5,9 @@ const createMediaRuleRuleList = (nativeMediaRule) => {
 
   ruleList.appendRuleCSS = (ruleCSS) => {
     const index = nativeMediaRule.cssRules.length;
+
+    invariant(ruleList.length === index, 'Number of rules is correct');
+
     nativeMediaRule.insertRule(ruleCSS, index);
     const nativeRule = nativeMediaRule.cssRules[index];
 
@@ -39,8 +42,12 @@ const createMediaRuleRuleList = (nativeMediaRule) => {
   };
 
   ruleList.deleteLastRule = () => {
+    const numRules = nativeMediaRule.cssRules.length;
+
+    invariant(ruleList.length === numRules, 'Number of rules is correct');
+
     ruleList.pop();
-    nativeMediaRule.deleteRule(nativeMediaRule.cssRules.length);
+    nativeMediaRule.deleteRule(numRules);
   };
 
   return ruleList;
