@@ -1,7 +1,6 @@
 import { cssifyObject } from 'css-in-js-utils';
 import convertStyleDescriptionToRuleDescriptions from './convertStyleDescriptionToRuleDescriptions';
-import createSheetRuleList from './createSheetRuleList';
-import createVirtualRuleList from './createVirtualRuleList';
+import createSheet from './createSheet';
 import createMediaRuleRuleList from './createMediaRuleRuleList';
 
 // TODO: Make a proper name generator.
@@ -30,7 +29,7 @@ const getEmptyRuleCSS = (ruleDescription) => `${ruleDescription.ruleKey}{}`;
 export const createClientSheet = () => {
   const getUniqueClassName = makeGetUniqueClassName();
   const nativeSheet = injectStyleTag().sheet;
-  const sheetRuleList = createSheetRuleList(nativeSheet);
+  const sheet = createSheet(nativeSheet);
 
   const setRule = (ruleList, rule, nextRuleDescription) => {
     let { ruleType, ruleKey } = rule.ruleDescription;
@@ -98,7 +97,7 @@ export const createClientSheet = () => {
   };
 
   const createStyleInstance = () => {
-    const ruleList = createVirtualRuleList(sheetRuleList);
+    const ruleList = sheet.createRuleList();
     const className = getUniqueClassName();
 
     const setStyle = (styleDescription) => {

@@ -1,4 +1,5 @@
 import invariant from 'invariant';
+import { requestIdleCallback, cancelIdleCallback } from './requestIdleCallback';
 
 const STYLE_RULE = 1;
 const MEDIA_RULE = 4;
@@ -6,11 +7,11 @@ const MEDIA_RULE = 4;
 const RULE_CLEANUP_MINIMUM_RULES = 10;
 const RULE_CLEANUP_MAXIMIUM_RULES = 1000;
 
-const createSheetRuleList = (nativeSheet) => {
-  const ruleList = [];
+const createSheet = (nativeSheet) => {
+  const sheetRuleList = [];
   let numUnusedRules = 0;
 
-  ruleList.appendRuleCSS = (ruleCSS) => {
+  sheetRuleList.appendRuleCSS = (ruleCSS) => {
     const index = nativeSheet.cssRules.length;
 
     // TODO: Wrap all insertRule calls with try/catch.
@@ -23,12 +24,12 @@ const createSheetRuleList = (nativeSheet) => {
       isUnused: false,
     };
 
-    ruleList.push(rule);
+    sheetRuleList.push(rule);
 
     return rule;
   };
 
-  ruleList.replaceRuleCSS = (rule, newRuleCSS) => {
+  sheetRuleList.replaceRuleCSS = (rule, newRuleCSS) => {
     const { index } = rule;
 
     invariant(rule.nativeRule === nativeSheet.cssRules[index], 'Rule index is correct');
@@ -41,7 +42,7 @@ const createSheetRuleList = (nativeSheet) => {
     return rule;
   };
 
-  ruleList.deleteRule = (rule) => {
+  sheetRuleList.deleteRule = (rule) => {
     const { index } = rule;
 
     // Clear contents of native rule.
@@ -64,18 +65,18 @@ const createSheetRuleList = (nativeSheet) => {
     scheduleRuleCleanup();
   };
 
-  let unscheduleRuleCleanup;
+  let callbackId;
   const scheduleRuleCleanup = () => {
     if (numUnusedRules > RULE_CLEANUP_MAXIMIUM_RULES) {
-      if (unscheduleRuleCleanup) {
-        unscheduleRuleCleanup();
-        unscheduleRuleCleanup = undefined;
+      if (callbackId) {
+        cancelIdleCallback(callbackId);
+        callbackId = undefined;
       }
 
       cleanupUnusedRules();
-    } else if (!unscheduleRuleCleanup && numUnusedRules > RULE_CLEANUP_MINIMUM_RULES) {
-      unscheduleRuleCleanup = requestIdleCallbackWithFallback(() => {
-        unscheduleRuleCleanup = undefined;
+    } else if (!callbackId && numUnusedRules > RULE_CLEANUP_MINIMUM_RULES) {
+      callbackId = requestIdleCallback(() => {
+        callbackId = undefined;
         cleanupUnusedRules();
       });
     }
@@ -83,11 +84,11 @@ const createSheetRuleList = (nativeSheet) => {
 
   const cleanupUnusedRules = () => {
     let i = 0;
-    while (i < ruleList.length) {
-      const rule = ruleList[i];
+    while (i < sheetRuleList.length) {
+      const rule = sheetRuleList[i];
 
       if (rule.isUnused) {
-        ruleList.splice(i, 1);
+        sheetRuleList.splice(i, 1);
         nativeSheet.deleteRule(i);
       } else {
         rule.index = i;
@@ -98,24 +99,32 @@ const createSheetRuleList = (nativeSheet) => {
     numUnusedRules = 0;
 
     if (process.env.NODE_ENV !== 'production') {
-      invariant(ruleList.every((rule, index) => rule.index === index), 'Indexes are valid');
+      invariant(sheetRuleList.every((rule, index) => rule.index === index), 'Indexes are valid');
     }
+  };
+
+  return {
+    createRuleList: () => createVirtualRuleList(sheetRuleList),
+  };;
+};
+
+const createVirtualRuleList = (sheetRuleList) => {
+  const ruleList = [];
+
+  ruleList.appendRuleCSS = (ruleCSS) => {
+    const rule = sheetRuleList.appendRuleCSS(ruleCSS);
+    ruleList.push(rule);
+    return rule;
+  };
+
+  ruleList.replaceRuleCSS = sheetRuleList.replaceRuleCSS;
+
+  ruleList.deleteLastRule = () => {
+    const rule = ruleList.pop();
+    sheetRuleList.deleteRule(rule);
   };
 
   return ruleList;
 };
 
-// Simple wrapper for requestIdleCallback that returns an unschedule function instead of an ID, and
-// uses setTimeout if requestIdleCallback isn't available.
-const REQUEST_IDLE_CALLBACK_FALLBACK_TIMEOUT = 60 * 1000;
-const requestIdleCallbackWithFallback = (callback) => {
-  if (window.requestIdleCallback && window.cancelIdleCallback) {
-    const id = window.requestIdleCallback(callback);
-    return () => window.cancelIdleCallback(id);
-  } else {
-    const id = setTimeout(callback, REQUEST_IDLE_CALLBACK_FALLBACK_TIMEOUT);
-    return () => clearTimeout(id);
-  }
-};
-
-export default createSheetRuleList;
+export default createSheet;
