@@ -13,6 +13,7 @@ export const createClientSheet = () => {
   const setRule = (ruleList, rule, nextRuleDescription) => {
     let { ruleType, ruleKey } = rule.ruleDescription;
 
+    // TODO: Update selector text directly for style rules if the browser supports it.
     if (ruleType !== nextRuleDescription.ruleType || ruleKey !== nextRuleDescription.ruleKey) {
       ruleList.replaceRuleCSS(rule, getEmptyRuleCSS(nextRuleDescription));
       ruleType = nextRuleDescription.ruleType;
@@ -30,9 +31,12 @@ export const createClientSheet = () => {
         currentProperties.every((property, i) => property === nextProperties[i])
       ) {
         // If all properties are the same and in the same order, update values dynamically.
+        // TODO: Compare performance of this vs. setting cssText.
         for (let i = 0; i < nextProperties.length; i++) {
           const property = nextProperties[i];
-          rule.nativeRule.style.setProperty(property, nextDeclarations[property]);
+          if (currentDeclarations[property] !== nextDeclarations[property]) {
+            rule.nativeRule.style.setProperty(property, nextDeclarations[property]);
+          }
         }
       } else {
         // Otherwise, just overwrite CSS so we can preserve order.
