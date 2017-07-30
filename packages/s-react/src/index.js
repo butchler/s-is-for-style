@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-// TODO: Allow getting element ref.
 class S extends Component {
   constructor() {
     super();
@@ -33,6 +32,7 @@ class S extends Component {
   render() {
     const {
       tag,
+      getRef,
       // Exclude style, className, and sheet from otherProps.
       className, // TODO: Print warning if `className` prop is received.
       style,
@@ -41,7 +41,7 @@ class S extends Component {
     } = this.props;
     const Tag = tag || 'div';
 
-    return <Tag className={this.state.classNames} {...otherProps}>{this.props.children}</Tag>;
+    return <Tag ref={getRef} className={this.state.classNames} {...otherProps}>{this.props.children}</Tag>;
   }
 }
 
