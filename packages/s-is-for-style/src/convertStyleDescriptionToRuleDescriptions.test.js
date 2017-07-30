@@ -16,6 +16,7 @@ describe('convertStyleDescriptionToRuleDescriptions', () => {
         declarations: {
           border: '1px solid black',
           borderRadius: '5px',
+          borderTop: '3px solid blue',
         },
       },
       {
@@ -25,18 +26,11 @@ describe('convertStyleDescriptionToRuleDescriptions', () => {
           border: '1px solid red',
         },
       },
-      {
-        ruleType: 'style',
-        ruleKey: '.a',
-        declarations: {
-          borderTop: '3px solid blue',
-        },
-      },
     ]);
   });
 
   it('supports @media rules', () => {
-    expect(convertStyleDescriptionToRuleDescriptions('test', {
+    expect(convertStyleDescriptionToRuleDescriptions('a', {
       color: 'red',
       '@media (min-width: 500px)': {
         color: 'green',
@@ -67,7 +61,7 @@ describe('convertStyleDescriptionToRuleDescriptions', () => {
       },
       {
         ruleType: 'media',
-        ruleKey: '@media (min-width: 500px)',
+        ruleKey: '@media (min-width: 1000px)',
         childRuleDescriptions: [
           {
             ruleType: 'style',
