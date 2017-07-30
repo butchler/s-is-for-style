@@ -63,6 +63,12 @@ describe('convertStyleDescriptionToRuleDescriptions', () => {
               color: 'green',
             },
           },
+        ],
+      },
+      {
+        ruleType: 'media',
+        ruleKey: '@media (min-width: 500px)',
+        childRuleDescriptions: [
           {
             ruleType: 'style',
             ruleKey: '.a',

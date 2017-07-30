@@ -2,44 +2,51 @@ import createMediaRuleRuleList from './createMediaRuleRuleList';
 
 describe('createMediaRuleRuleList', () => {
   it('appends rule at end', () => injectRuleAndTest(
-    '@media (min-width: 0px) { .test { color: red; } }',
     '<h1 class="test">Test</h1>',
     (mediaRuleList) => {
-      const testElement = document.body.querySelector('.test');
+      mediaRuleList.appendRuleCSS('.test { color: red; }');
       mediaRuleList.appendRuleCSS('.test { color: blue; }');
-      expect(window.getComputedStyles(testElement).color).to.equal('blue');
+
+      const testElement = document.body.querySelector('.test');
+      expect(window.getComputedStyle(testElement).color).to.equal('rgb(0, 0, 255)');
     }
   ));
 
   it('replaces rule in place', () => injectRuleAndTest(
-    '@media (min-width: 0px) { .a { color: black; } .b { color: blue } .b { color: red; } }',
     '<div class="a">A</div><div class="b">B</div>',
     (mediaRuleList) => {
+      mediaRuleList.appendRuleCSS('.a { color: black; }');
+      mediaRuleList.appendRuleCSS('.b { color: blue; }');
+      mediaRuleList.appendRuleCSS('.b { color: red; }');
+      mediaRuleList.replaceRuleCSS(mediaRuleList[1], '.a { color: blue; }');
+
       const a = document.body.querySelector('.a');
       const b = document.body.querySelector('.b');
-      mediaRuleList.replaceRuleCSS(mediaRuleList[1], '.a { color: blue; }');
-      expect(window.getComputedStyles(a).color).to.equal('blue');
-      expect(window.getComputedStyles(b).color).to.equal('red');
+      expect(window.getComputedStyle(a).color).to.equal('rgb(0, 0, 255)');
+      expect(window.getComputedStyle(b).color).to.equal('rgb(255, 0, 0)');
     }
   ));
 
   it('deletes last rule', () => injectRuleAndTest(
-    '@media (min-width: 0px) { .a { color: black; } .a { color: blue } }',
     '<div class="a">A</div>',
     (mediaRuleList) => {
-      const a = document.body.querySelector('.a');
+      mediaRuleList.appendRuleCSS('.a { color: black; }');
+      mediaRuleList.appendRuleCSS('.a { color: blue; }');
       mediaRuleList.deleteLastRule();
-      expect(window.getComputedStyles(a).color).to.equal('black');
+
+      const a = document.body.querySelector('.a');
+      expect(window.getComputedStyle(a).color).to.equal('rgb(0, 0, 0)');
     }
   ));
 });
 
-const injectRuleAndTest = (cssText, htmlText, testFunction) => {
+const injectRuleAndTest = (htmlText, testFunction) => {
   // Init document HTML and CSS
   const styleTag = document.createElement('style');
   styleTag.setAttribute('type', 'text/css');
   document.head.appendChild(styleTag);
-  styleTag.sheet.cssText = cssTest;
+  const cssText = '@media (min-width: 0px) {}';
+  styleTag.appendChild(document.createTextNode(cssText));
 
   document.body.innerHTML = htmlText;
 

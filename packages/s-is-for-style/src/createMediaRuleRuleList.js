@@ -47,7 +47,7 @@ const createMediaRuleRuleList = (nativeMediaRule) => {
     invariant(ruleList.length === numRules, 'Number of rules is correct');
 
     ruleList.pop();
-    nativeMediaRule.deleteRule(numRules);
+    nativeMediaRule.deleteRule(numRules - 1);
   };
 
   return ruleList;
