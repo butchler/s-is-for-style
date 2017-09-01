@@ -9,7 +9,15 @@
     "s-react": "^0.1.0",
     "s-is-for-style": "^0.1.0",
     "styletron-client": "^2.5.7",
-    "styletron-utils": "^2.5.4"
+    "styletron-utils": "^2.5.4",
+    "classnames": "^2.2.3",
+    "clean-css": "^3.4.18",
+    "react-jss": "^5.1.1",
+    "react-redux": "^4.4.0",
+    "react-router": "^2.0.0",
+    "react-router-redux": "^4.0.0",
+    "redux": "^3.3.1",
+    "redux-actions": "^0.9.1"
   },
   "scripts": {
     "start": "react-scripts start",
