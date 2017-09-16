@@ -4,19 +4,20 @@ import { Provider } from 'react-redux'
 import ReactDOM from 'react-dom'
 import React from 'react'
 
-import App from './containers/App'
-import configure from './store'
+import AppJSS from './jss/containers/App'
+import AppS from './s/containers/App'
 
-import { addTodo, completeAll, clearCompleted } from './actions/todos';
+import configure from './jss/store'
+import { addTodo, completeAll, clearCompleted } from './jss/actions/todos';
 
-const timeMount = (store) => new Promise((resolve, reject) => {
+const timeMount = (AppComponent, store) => new Promise((resolve, reject) => {
   const history = syncHistoryWithStore(browserHistory, store);
 
   const startTime = window.performance.now();
   ReactDOM.render(
     <Provider store={store}>
       <Router history={history}>
-        <Route path="*" component={App} />
+        <Route path="*" component={AppComponent} />
       </Router>
     </Provider>,
     document.getElementById('root'), () => {
@@ -113,11 +114,11 @@ const timeActions = (store) => new Promise((resolve, reject) => {
   doNextAction();
 });
 
-const getStats = () => {
+const getStats = (AppComponent) => {
   const store = configure()
   const stats = {};
 
-  return timeMount(store)
+  return timeMount(AppComponent, store)
     .then(time => {
       stats.mount = time;
       return timeActions(store);
@@ -133,23 +134,23 @@ const getStats = () => {
     });
 };
 
-const repeatStats = (numRepeats) => new Promise((resolve, reject) => {
+const repeatStats = (AppComponent, numRepeats) => new Promise((resolve, reject) => {
   const loop = (i = 0, allStats = []) => {
     if (i === numRepeats) {
       resolve(allStats);
     } else {
-      getStats().then(stats => loop(i + 1, [stats, ...allStats]));
+      getStats(AppComponent).then(stats => loop(i + 1, [stats, ...allStats]));
     }
   };
 
   loop();
 });
 
-window.test = () => {
+const testApp = (AppComponent) => (
   // Prime optimizer
-  repeatStats(5)
+  repeatStats(AppComponent, 5)
     // Perform actual tests.
-    .then(() => repeatStats(20))
+    .then(() => repeatStats(AppComponent, 20))
     .then(allStats => {
       // Group stats into arrays of times, keyed by type (mount/actions/unmount).
       const allStatsByType = {};
@@ -177,5 +178,20 @@ window.test = () => {
 
       console.log(mediansByType)
       console.table(allStats);
+    })
+);
+
+const NullApp = () => null;
+
+window.test = () => {
+  console.log('Testing control...');
+  testApp(NullApp)
+    .then(() => {
+      console.log('Testing JSS...');
+      return testApp(AppJSS);
+    })
+    .then(() => {
+      console.log('Testing S...');
+      return testApp(AppS);
     });
 };
