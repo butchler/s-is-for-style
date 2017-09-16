@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { createClientSheet } from 's-is-for-style';
 
 class S extends Component {
   constructor() {
@@ -11,7 +12,7 @@ class S extends Component {
   }
 
   componentWillMount() {
-    this.styleInstance = this.props.sheet.createStyleInstance();
+    this.styleInstance = this.context.sheet.createStyleInstance();
 
     this.setState({
       classNames: this.styleInstance.setStyle(this.props.style),
@@ -56,8 +57,37 @@ S.propTypes = {
   style: PropTypes.object,
   className: PropTypes.string,
   children: PropTypes.node,
+};
+
+S.contextTypes = {
   // TODO: Add sheet shape.
   //sheet: PropTypes.shape(sheetShape).isRequired,
+  sheet: PropTypes.object.isRequired,
+};
+
+export class SheetProvider extends Component {
+  constructor() {
+    super();
+
+    this.sheet = createClientSheet();
+  }
+
+  getChildContext() {
+    return {
+      sheet: this.sheet,
+    };
+  }
+
+  render() {
+    return React.Children.only(this.props.children);
+  }
+}
+
+SheetProvider.propTypes = {
+  children: PropTypes.node,
+};
+
+SheetProvider.childContextTypes = {
   sheet: PropTypes.object.isRequired,
 };
 
