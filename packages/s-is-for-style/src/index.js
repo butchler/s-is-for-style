@@ -1,6 +1,6 @@
 import { cssifyObject } from 'css-in-js-utils';
 import convertStyleDescriptionToRuleDescriptions from './convertStyleDescriptionToRuleDescriptions';
-import createSheet from './createSheet';
+import createSheetRuleList from './createSheetRuleList';
 import createMediaRuleRuleList from './createMediaRuleRuleList';
 import makeGetUniqueClassName from './makeGetUniqueClassName';
 import injectStyleTag from './injectStyleTag';
@@ -8,7 +8,7 @@ import injectStyleTag from './injectStyleTag';
 export const createClientSheet = () => {
   const getUniqueClassName = makeGetUniqueClassName();
   const nativeSheet = injectStyleTag().sheet;
-  const sheet = createSheet(nativeSheet);
+  const sheet = createSheetRuleList(nativeSheet);
 
   const setRule = (ruleList, rule, nextRuleDescription) => {
     let { ruleType, ruleKey } = rule.ruleDescription;
