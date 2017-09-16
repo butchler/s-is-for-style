@@ -33,15 +33,21 @@ class S extends Component {
     const {
       tag,
       getRef,
-      // Exclude style, className, and sheet from otherProps.
-      className, // TODO: Print warning if `className` prop is received.
+      className,
+      // Exclude style and sheet from otherProps.
+      // TODO: Pull sheet from context instead of props.
       style,
-      sheet, // TODO: Pull sheet from context instead of props.
+      sheet,
       ...otherProps
     } = this.props;
     const Tag = tag || 'div';
+    const combinedClassName = (
+      (className || '') +
+      ((className && this.state.classNames) ? ' ' : '') +
+      (this.state.classNames || '')
+    );
 
-    return <Tag ref={getRef} className={this.state.classNames} {...otherProps}>{this.props.children}</Tag>;
+    return <Tag ref={getRef} className={combinedClassName} {...otherProps}>{this.props.children}</Tag>;
   }
 }
 
