@@ -117,37 +117,29 @@ const timeActions = (store) => new Promise((resolve, reject) => {
   doNextAction();
 });
 
-const getStats = (AppComponent) => {
-  const store = configure()
-  const stats = {};
-
-  return timeMount(AppComponent, store)
-    .then(time => {
-      stats.mount = time;
-      return timeActions(store);
-    })
-    .then(time => {
-      stats.actions = time;
-      return timeUnmount();
-    })
-    .then(time => {
-      stats.unmount = time;
-
-      return stats;
-    });
+const getStats = (AppComponent, store) => {
+  return timeActions(store).then(time => ({ actions: time }));
 };
 
-const repeatStats = (AppComponent, numRepeats) => new Promise((resolve, reject) => {
-  const loop = (i = 0, allStats = []) => {
-    if (i === numRepeats) {
-      resolve(allStats);
-    } else {
-      getStats(AppComponent).then(stats => loop(i + 1, [stats, ...allStats]));
-    }
-  };
+const repeatStats = (AppComponent, numRepeats) => {
+  const store = configure();
 
-  loop();
-});
+  const loopActions = () => new Promise((resolve, reject) => {
+    const loop = (i = 0, allStats = []) => {
+      if (i === numRepeats) {
+        resolve(allStats);
+      } else {
+        getStats(AppComponent, store).then(stats => loop(i + 1, [stats, ...allStats]));
+      }
+    };
+
+    loop();
+  });
+
+  return timeMount(AppComponent, store).then(loopActions).then(allStats => {
+    return timeUnmount().then(() => allStats);
+  });
+};
 
 const testApp = (AppComponent) => (
   // Prime optimizer
