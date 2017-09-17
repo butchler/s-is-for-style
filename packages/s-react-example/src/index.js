@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom'
 import React from 'react'
 
 import AppJSS from './jss/containers/App'
+import AppJSS2 from './jss-2/containers/App'
 import AppS from './s/containers/App'
 import AppStyletron from './styletron/containers/App'
 import AppStyletronReact from './styletron-react/containers/App'
@@ -186,11 +187,18 @@ const testApp = (AppComponent) => (
 const NullApp = () => null;
 
 window.test = () => {
-  console.log('Testing control...');
-  testApp(NullApp)
+  Promise.resolve()
+    .then(() => {
+      console.log('Testing control...');
+      return testApp(NullApp);
+    })
     .then(() => {
       console.log('Testing JSS...');
       return testApp(AppJSS);
+    })
+    .then(() => {
+      console.log('Testing JSS 2 (no classnames module)...');
+      return testApp(AppJSS2);
     })
     .then(() => {
       console.log('Testing S...');
@@ -200,8 +208,8 @@ window.test = () => {
       console.log('Testing S-Styletron...');
       return testApp(AppStyletron);
     })
-    .then(() => {
-      console.log('Testing Styletron-React...');
-      return testApp(AppStyletronReact);
-    });
+    //.then(() => {
+      //console.log('Testing Styletron-React...');
+      //return testApp(AppStyletronReact);
+    //});
 };
