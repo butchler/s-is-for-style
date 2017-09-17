@@ -3,27 +3,8 @@ import PropTypes from 'prop-types';
 import { createClientSheet } from 's-is-for-style';
 
 class S extends Component {
-  constructor() {
-    super();
-
-    // TODO: Don't use state?
-    this.state = {
-      classNames: '',
-    };
-  }
-
   componentWillMount() {
     this.styleInstance = this.context.sheet.createStyleInstance();
-
-    this.setState({
-      classNames: this.styleInstance.setStyle(this.props.style),
-    });
-  }
-
-  componentWillReceiveProps(nextProps) {
-    const nextClassNames = this.styleInstance.setStyle(nextProps.style);
-
-    this.setState({ classNames: nextClassNames });
   }
 
   componentWillUnmount() {
@@ -36,17 +17,17 @@ class S extends Component {
       tag,
       getRef,
       className,
-      // Exclude style and sheet from otherProps.
-      // TODO: Pull sheet from context instead of props.
       style,
-      sheet,
       ...otherProps
     } = this.props;
     const Tag = tag || 'div';
+
+    const styleClassNames = this.styleInstance.setStyle(style);
+
     const combinedClassName = (
-      (className || '') +
-      ((className && this.state.classNames) ? ' ' : '') +
-      (this.state.classNames || '')
+      (styleClassNames && className) ? `${styleClassNames} ${className}` :
+      !className ? styleClassNames :
+      className
     );
 
     return <Tag ref={getRef} className={combinedClassName} {...otherProps}>{this.props.children}</Tag>;
