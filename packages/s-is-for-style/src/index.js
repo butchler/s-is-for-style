@@ -123,6 +123,7 @@ export const createClientSheet = () => {
 
       let atomicClassNames = '';
 
+      /*
       ruleDescriptions.forEach(rule => {
         if (rule.ruleType === 'style' && rule.ruleKey.indexOf(':') === -1) {
           Object.keys(rule.declarations).forEach(propertyName => {
@@ -165,6 +166,7 @@ export const createClientSheet = () => {
           });
         }
       });
+      */
 
       setRules(ruleList, ruleDescriptions);
 
