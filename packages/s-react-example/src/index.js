@@ -180,6 +180,8 @@ const testApp = (AppComponent) => (
 const NullApp = () => null;
 
 window.test = () => {
+  document.querySelector('#root').style.display = 'none';
+
   Promise.resolve()
     .then(() => {
       console.log('Testing control...');
