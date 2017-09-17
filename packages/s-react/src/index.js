@@ -4,12 +4,16 @@ import { createClientSheet } from 's-is-for-style';
 
 class S extends Component {
   componentWillMount() {
+    window.time && window.time('start');
     this.styleInstance = this.context.sheet.createStyleInstance();
+    window.time && window.time('end');
   }
 
   componentWillUnmount() {
     // Remove all styles.
+    window.time && window.time('start');
     this.styleInstance.setStyle(null);
+    window.time && window.time('end');
   }
 
   render() {
@@ -22,7 +26,9 @@ class S extends Component {
     } = this.props;
     const Tag = tag || 'div';
 
+    window.time && window.time('start');
     const styleClassNames = this.styleInstance.setStyle(style);
+    window.time && window.time('end');
 
     const combinedClassName = (
       (styleClassNames && className) ? `${styleClassNames} ${className}` :

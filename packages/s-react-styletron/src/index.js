@@ -14,7 +14,9 @@ function S(props, context) {
   } = props;
   const Tag = tag || 'div';
 
+  window.time && window.time('start');
   const styleClassNames = injectStyle(context.styletron, style);
+  window.time && window.time('end');
 
   const combinedClassName = (
     (styleClassNames && className) ? `${styleClassNames} ${className}` :

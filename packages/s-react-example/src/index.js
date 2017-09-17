@@ -119,7 +119,31 @@ const timeActions = (store) => new Promise((resolve, reject) => {
 });
 
 const getStats = (AppComponent, store) => {
-  return timeActions(store).then(time => ({ actions: time }));
+  let totalLibTime = 0;
+  let startTime = undefined;
+
+  window.time = (startOrEnd) => {
+    if (startOrEnd === 'start') {
+      if (startTime !== undefined) {
+        throw new Error('start called twice in row');
+      }
+
+      startTime = window.performance.now();
+    } else {
+      const measuredTime = window.performance.now() - startTime;
+      startTime = undefined;
+      totalLibTime += measuredTime;
+    }
+  };
+
+  return timeActions(store).then(time => {
+    delete window.time;
+
+    return ({
+      actions: time,
+      totalLibTime,
+    })
+  });
 };
 
 const repeatStats = (AppComponent, numRepeats) => {
