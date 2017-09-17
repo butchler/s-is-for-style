@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import ReactDOM from 'react-dom'
 import React from 'react'
 
+import AppControl from './control/containers/App'
 import AppJSS from './jss/containers/App'
 import AppJSS2 from './jss-2/containers/App'
 import AppS from './s/containers/App'
@@ -177,15 +178,13 @@ const testApp = (AppComponent) => (
     .then(() => new Promise(resolve => setTimeout(resolve, 500)))
 );
 
-const NullApp = () => null;
-
 window.test = () => {
   document.querySelector('#root').style.display = 'none';
 
   Promise.resolve()
     .then(() => {
       console.log('Testing control...');
-      return testApp(NullApp);
+      return testApp(AppControl);
     })
     .then(() => {
       console.log('Testing JSS...');
