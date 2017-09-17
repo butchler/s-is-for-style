@@ -96,6 +96,7 @@ export const createClientSheet = () => {
     const className = getUniqueClassName();
 
     const setStyle = (styleDescription) => {
+      // TODO: Maybe use object pool for convertStyleDescriptionToRuleDescriptions?
       const ruleDescriptions = convertStyleDescriptionToRuleDescriptions(className, styleDescription);
 
       // TODO: Maybe hyphenate property names here?

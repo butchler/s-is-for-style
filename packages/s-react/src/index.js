@@ -6,6 +6,7 @@ class S extends Component {
   constructor() {
     super();
 
+    // TODO: Don't use state?
     this.state = {
       classNames: '',
     };
