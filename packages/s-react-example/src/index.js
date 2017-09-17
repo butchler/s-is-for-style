@@ -6,6 +6,8 @@ import React from 'react'
 
 import AppJSS from './jss/containers/App'
 import AppS from './s/containers/App'
+import AppStyletron from './styletron/containers/App'
+import AppStyletronReact from './styletron-react/containers/App'
 
 import configure from './jss/store'
 import { addTodo, completeAll, clearCompleted } from './jss/actions/todos';
@@ -193,5 +195,13 @@ window.test = () => {
     .then(() => {
       console.log('Testing S...');
       return testApp(AppS);
+    })
+    .then(() => {
+      console.log('Testing S-Styletron...');
+      return testApp(AppStyletron);
+    })
+    .then(() => {
+      console.log('Testing Styletron-React...');
+      return testApp(AppStyletronReact);
     });
 };
