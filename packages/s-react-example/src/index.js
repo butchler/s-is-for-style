@@ -174,6 +174,7 @@ const testApp = (AppComponent) => (
       console.log(mediansByType)
       console.table(allStats);
     })
+    .then(() => new Promise(resolve => setTimeout(resolve, 500)))
 );
 
 const NullApp = () => null;
