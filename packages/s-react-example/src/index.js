@@ -142,10 +142,11 @@ const repeatStats = (AppComponent, numRepeats) => {
 };
 
 const testApp = (AppComponent) => (
-  // Prime optimizer
-  repeatStats(AppComponent, 5)
-    // Perform actual tests.
-    .then(() => repeatStats(AppComponent, 20))
+  repeatStats(AppComponent, 25)
+    .then(allStats => {
+      // Drop first few stats, since they might not have been optimized.
+      return allStats.slice(5);
+    })
     .then(allStats => {
       // Group stats into arrays of times, keyed by type (mount/actions/unmount).
       const allStatsByType = {};
