@@ -72,6 +72,11 @@ export class SheetProvider extends Component {
     this.sheet = createClientSheet();
   }
 
+  componentWillUnmount() {
+    // Hack to remove all styles we added.
+    createClientSheet();
+  }
+
   getChildContext() {
     return {
       sheet: this.sheet,
