@@ -6,7 +6,7 @@ import presets from 'jss-preset-default';
 const jss = create(presets());
 
 export function withClasses(styleSheet/*, TODO: options */) {
-  const { jssStyleSheet, classNameToJSSClassNames } = createJSSStyleSheet(styleSheet);
+  const { jssStyleSheet, getJSSClassNameArray } = createJSSStyleSheet(styleSheet);
 
   // TODO: Make proper JSS provider.
   const sheet = jss.createStyleSheet(jssStyleSheet).attach();
@@ -14,12 +14,10 @@ export function withClasses(styleSheet/*, TODO: options */) {
   const classes = {};
 
   Object.keys(styleSheet).forEach(className => {
-    const generatedClassNames = classNameToJSSClassNames[className]
+    // TODO: Optimize?
+    classes[className] = (data) => getJSSClassNameArray[className](data)
       .map(jssClassName => sheet.classes[jssClassName])
       .join(' ');
-
-    // TODO: Conditional and dynamic styles.
-    classes[className] = () => generatedClassNames;
   });
 
   return (WrappedComponent) => {
@@ -48,13 +46,13 @@ JSSProvider.propTypes = {
 const createJSSStyleSheet = (styleSheet) => {
   // Convert our stylesheet syntax to JSS's nested syntax.
   const jssStyleSheet = {};
-  const classNameToJSSClassNames = {};
+  const getJSSClassNameArray = {};
 
   Object.keys(styleSheet).forEach(className => {
-    const jssClassNames = [];
+    const jssClassNameArray = [];
     let currentClasNameId = 0;
     let currentJSSClassName = `${className}-${currentClasNameId}`;
-    jssClassNames.push(currentJSSClassName);
+    jssClassNameArray.push(currentJSSClassName);
     jssStyleSheet[currentJSSClassName] = {};
 
     const properties = styleSheet[className];
@@ -65,14 +63,14 @@ const createJSSStyleSheet = (styleSheet) => {
         // Make a new JSS class wrapped in the media query.
         currentClasNameId += 1;
         currentJSSClassName = `${className}-${currentClasNameId}`;
-        jssClassNames.push(currentJSSClassName);
+        jssClassNameArray.push(currentJSSClassName);
         const mediaBlock = properties[propertyName];
         jssStyleSheet[propertyName] = {};
         jssStyleSheet[propertyName][currentJSSClassName] = addAmpersands(mediaBlock);
         currentClasNameId += 1;
         currentJSSClassName = `${className}-${currentClasNameId}`;
         // TODO: Don't add class names that don't have any styles yet.
-        jssClassNames.push(currentJSSClassName);
+        jssClassNameArray.push(currentJSSClassName);
       } else if (propertyName.startsWith(':')) {
         // Add a & at the beginning of the pseudo-selector.
         const pseudoSelectorBlock = properties[propertyName];
@@ -87,14 +85,15 @@ const createJSSStyleSheet = (styleSheet) => {
       }
     });
 
-    console.log(`${className}:`, jssClassNames);
+    console.log(`${className}:`, jssClassNameArray);
 
-    classNameToJSSClassNames[className] = jssClassNames;
+    // TODO: Conditional and dynamic styles.
+    getJSSClassNameArray[className] = () => jssClassNameArray;
   });
 
   console.log(jssStyleSheet);
 
-  return { jssStyleSheet, classNameToJSSClassNames };
+  return { jssStyleSheet, getJSSClassNameArray };
 };
 
 const isCSSPropertyName = (propertyName) => /^[a-zA-Z-]/.test(propertyName[0]);
