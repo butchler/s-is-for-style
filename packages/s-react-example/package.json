@@ -19,7 +19,9 @@
     "s-react-styletron": "^0.1.0",
     "styletron-client": "^2.5.7",
     "styletron-react": "^2.5.8",
-    "styletron-utils": "^2.5.4"
+    "styletron-utils": "^2.5.4",
+    "jss-styled": "0.1.0",
+    "react-jss-custom": "0.1.0"
   },
   "scripts": {
     "start": "react-scripts start",

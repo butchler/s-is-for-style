@@ -7,6 +7,8 @@ import React from 'react'
 import AppControl from './control/containers/App'
 import AppJSS from './jss/containers/App'
 import AppJSS2 from './jss-2/containers/App'
+import AppJSSStyled from './jss-styled/containers/App'
+import AppJSSCustom from './jss-custom/containers/App';
 import AppS from './s/containers/App'
 import AppStyletron from './styletron/containers/App'
 import AppStyletronReact from './styletron-react/containers/App'
@@ -259,9 +261,9 @@ const timeActions = (store) => new Promise((resolve, reject) => {
 
         store.dispatch(nextAction);
 
-        //setTimeout(doNextAction, 0);
-        [...document.querySelectorAll('input')].forEach(element => window.getComputedStyle(element, null).getPropertyValue('height'));
-        doNextAction();
+        setTimeout(doNextAction, 0);
+        //[...document.querySelectorAll('input')].forEach(element => window.getComputedStyle(element, null).getPropertyValue('height'));
+        //doNextAction();
       }
     } catch (error) {
       reject(error);
@@ -361,6 +363,10 @@ window.test = () => {
 
   Promise.resolve()
     .then(() => {
+      console.log('Testing JSS Styled...');
+      return testApp(AppJSSStyled);
+    })
+    .then(() => {
       console.log('Testing control...');
       return testApp(AppControl);
     })
@@ -385,3 +391,5 @@ window.test = () => {
       //return testApp(AppStyletronReact);
     //});
 };
+
+timeMount(AppJSSCustom, configure());
