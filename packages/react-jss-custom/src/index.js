@@ -6,16 +6,17 @@ import presets from 'jss-preset-default';
 const jss = create(presets());
 
 export function withClasses(styleSheet/*, TODO: options */) {
-  const { jssStyleSheet, getJSSClassNameArray } = createJSSStyleSheet(styleSheet);
+  const { jssStyleSheet, getJssClassNameArray } = createJssStyleSheet(styleSheet);
 
   // TODO: Make proper JSS provider.
   const sheet = jss.createStyleSheet(jssStyleSheet).attach();
 
   const classes = {};
 
+  // TODO: Support dynamic style values.
   Object.keys(styleSheet).forEach(className => {
     // TODO: Optimize?
-    classes[className] = (data) => getJSSClassNameArray[className](data)
+    classes[className] = (data) => getJssClassNameArray[className](data)
       .map(jssClassName => sheet.classes[jssClassName])
       .join(' ');
   });
@@ -23,7 +24,7 @@ export function withClasses(styleSheet/*, TODO: options */) {
   return (WrappedComponent) => {
     // TODO: Add sheet when component is mounted using SheetManager.
     function WithClasses(props) {
-      return <WrappedComponent classes={classes} {...props} />
+      return <WrappedComponent classes={classes} {...props} />;
     }
 
     WithClasses.displayName = `WithClasses(${WrappedComponent.displayName || WrappedComponent.name || 'undefined'})`;
@@ -43,78 +44,185 @@ JSSProvider.propTypes = {
   children: PropTypes.node,
 };
 
-const createJSSStyleSheet = (styleSheet) => {
-  // Convert our stylesheet syntax to JSS's nested syntax.
-  const jssStyleSheet = {};
-  const getJSSClassNameArray = {};
+const STATE_TOP_LEVEL = 'top-level';
+const STATE_SWITCH_CASE = 'switch-case';
+const STATE_MEDIA_QUERY = 'media-query';
+const STATE_PSEUDO_SELECTOR = 'pseudo-selector';
 
-  Object.keys(styleSheet).forEach(className => {
-    const jssClassNameArray = [];
-    let currentClasNameId = 0;
-    let currentJSSClassName = `${className}-${currentClasNameId}`;
-    jssClassNameArray.push(currentJSSClassName);
-    jssStyleSheet[currentJSSClassName] = {};
+const addClassToJssStyleSheet = ({
+  jssSheetClasses,
+  jssSheetMediaQueries,
+  switchMappings,
+  className,
+  block,
+  outputBlock,
+  state,
+}) => {
+  if (!outputBlock) {
+    throw new Error('Internal error: No outputBlock');
+  } else if (state === STATE_SWITCH_CASE && !block || Object.keys(block).length === 0) {
+    // Allow empty blocks inside switch cases.
+    return;
+  }
 
-    const properties = styleSheet[className];
-    Object.keys(properties).forEach(propertyName => {
-      if (propertyName === '@switch') {
-        // TODO
-      } else if (propertyName.startsWith('@media')) {
-        // Make a new JSS class wrapped in the media query.
-        currentClasNameId += 1;
-        currentJSSClassName = `${className}-${currentClasNameId}`;
-        jssClassNameArray.push(currentJSSClassName);
-        const mediaBlock = properties[propertyName];
-        jssStyleSheet[propertyName] = {};
-        jssStyleSheet[propertyName][currentJSSClassName] = addAmpersands(mediaBlock);
-        currentClasNameId += 1;
-        currentJSSClassName = `${className}-${currentClasNameId}`;
-        // TODO: Don't add class names that don't have any styles yet.
-        jssClassNameArray.push(currentJSSClassName);
-      } else if (propertyName.startsWith(':')) {
-        // Add a & at the beginning of the pseudo-selector.
-        const pseudoSelectorBlock = properties[propertyName];
-        jssStyleSheet[currentJSSClassName][`&${propertyName}`] = pseudoSelectorBlock;
-      } else if (isCSSPropertyName(propertyName)) {
-        // Add the value as is.
-        const propertyValue = properties[propertyName];
-        jssStyleSheet[currentJSSClassName][propertyName] = propertyValue;
-      } else {
-        // TODO: Add something like a stack trace.
-        throw new Error(`Unrecognized property name '${propertyName}'`);
+  let hadSwitch = false;
+
+  objectForEach(block, (key, value) => {
+    if (hadSwitch) {
+      throw new Error('@switch must be the last block');
+    }
+
+    if (key === '@switch') {
+      if (state !== STATE_TOP_LEVEL) {
+        // TODO: Show backtrace.
+        throw new Error('@switch blocks are only allowed at the top level of a class block');
       }
-    });
 
-    console.log(`${className}:`, jssClassNameArray);
+      hadSwitch = true;
 
-    // TODO: Conditional and dynamic styles.
-    getJSSClassNameArray[className] = () => jssClassNameArray;
-  });
+      const switchBlocks = value;
+      objectForEach(switchBlocks, (switchValueName, cases) => {
+        switchMappings[switchValueName] = {};
 
-  console.log(jssStyleSheet);
+        // TODO: Verify cases.
+        objectForEach(cases, (caseValue, caseStyleBlock, index) => {
+          // TODO: Add caseValue to caseClassName?
+          const caseClassName = `${className}-${switchValueName}-${index}`;
+          jssSheetClasses[caseClassName] = {};
+          switchMappings[switchValueName][caseValue] = caseClassName;
 
-  return { jssStyleSheet, getJSSClassNameArray };
-};
+          addClassToJssStyleSheet({
+            jssSheetClasses,
+            jssSheetMediaQueries,
+            switchMappings,
+            className: caseClassName,
+            block: caseStyleBlock,
+            outputBlock: jssSheetClasses[caseClassName],
+            state: STATE_SWITCH_CASE,
+          });
+        });
+      });
+    } else if (/^:[:a-zA-Z]/.test(key)) {
+      if (!(state === STATE_TOP_LEVEL || state === STATE_SWITCH_CASE || state === STATE_MEDIA_QUERY)) {
+        throw new Error('Pseudo-selector blocks cannot be nested');
+      }
 
-const isCSSPropertyName = (propertyName) => /^[a-zA-Z-]/.test(propertyName[0]);
+      // Pseudo-selector rule
+      const pseudoSelector = key;
 
-const addAmpersands = (block) => {
-  const result = {};
-
-  Object.keys(block).forEach(propertyName => {
-    if (propertyName.startsWith(':')) {
       // Add a & at the beginning of the pseudo-selector.
-      const pseudoSelectorBlock = block[propertyName];
-      result[`&${propertyName}`] = pseudoSelectorBlock;
-    } else if (isCSSPropertyName(propertyName)) {
-      // Add the value as is.
-      const propertyValue = block[propertyName];
-      result[propertyName] = propertyValue;
+      outputBlock[`&${pseudoSelector}`] = {};
+
+      addClassToJssStyleSheet({
+        jssSheetClasses,
+        jssSheetMediaQueries,
+        switchMappings,
+        className,
+        block: value,
+        outputBlock: outputBlock[`&${pseudoSelector}`],
+        state: STATE_PSEUDO_SELECTOR,
+      });
+    } else if (/^@media/.test(key)) {
+      if (!(state === STATE_TOP_LEVEL || state === STATE_SWITCH_CASE)) {
+        throw new Error('@media queries only allowed at top level or in switch cases');
+      }
+
+      const mediaQuery = key;
+
+      if (!jssSheetMediaQueries[mediaQuery]) {
+        jssSheetMediaQueries[mediaQuery] = {};
+      }
+
+      jssSheetMediaQueries[mediaQuery][className] = {};
+
+      addClassToJssStyleSheet({
+        jssSheetClasses,
+        jssSheetMediaQueries,
+        switchMappings,
+        className,
+        block: value,
+        outputBlock: jssSheetMediaQueries[mediaQuery][className],
+        state: STATE_MEDIA_QUERY,
+      });
+    } else if (/^[a-zA-Z-]/.test(key)) {
+      // CSS property declaration
+      const propertyName = key;
+
+      // TODO: Maybe verify value?
+      outputBlock[propertyName] = value;
     } else {
-      // TODO: Add something like a stack trace.
-      throw new Error(`Unrecognized property name '${propertyName}'`);
+      throw new Error(`Invalid key '${key}'`);
     }
   });
+};
 
-  return result;
+const createJssStyleSheet = (styleSheet) => {
+  // Convert our stylesheet syntax to JSS's nested syntax.
+  const jssSheetClasses = {};
+  const jssSheetMediaQueries = {};
+  const getJssClassNameArray = {};
+
+  objectForEach(styleSheet, (className, block) => {
+    const switchMappings = {};
+
+    jssSheetClasses[className] = {};
+
+    addClassToJssStyleSheet({
+      jssSheetClasses,
+      jssSheetMediaQueries,
+      switchMappings,
+      className,
+      block,
+      outputBlock: jssSheetClasses[className],
+      state: STATE_TOP_LEVEL,
+    });
+
+    // TODO: Support dynamic style values.
+    getJssClassNameArray[className] = (data) => {
+      if (!data) {
+        return [className];
+      } else {
+        const result = [className];
+
+        const addClassName = (caseClassName) => caseClassName && result.push(caseClassName);
+
+        objectForEach(switchMappings, (dataKey, cases) => {
+          if (data.hasOwnProperty(dataKey)) {
+            const dataValue = data[dataKey];
+            // TODO: Warn if dataValue is 'default'
+
+            if (typeof dataValue === 'boolean') {
+              addClassName(dataValue ? cases.true : cases.false);
+            } else {
+              addClassName(cases[dataValue] || cases.default || cases.false);
+            }
+          } else {
+            // Data not provided, use default.
+            // TODO: Warn if data is not provided?
+            addClassName(cases.default || cases.false);
+          }
+        });
+
+        return result;
+      }
+    };
+  });
+
+  const jssStyleSheet = {
+    ...jssSheetClasses,
+    ...jssSheetMediaQueries,
+  };
+
+  return { jssStyleSheet, getJssClassNameArray };
+};
+
+const objectForEach = (object, callback) => {
+  if (!object || Object.keys(object).length === 0) {
+    // TODO: Show backtrace.
+    throw new Error('Empty blocks not allowed');
+  }
+
+  Object.keys(object).forEach((key, index) => {
+    callback(key, object[key], index);
+  });
 };
