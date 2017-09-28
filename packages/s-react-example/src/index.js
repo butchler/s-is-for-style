@@ -261,8 +261,8 @@ const timeActions = (store) => new Promise((resolve, reject) => {
 
         store.dispatch(nextAction);
 
+        [...document.querySelectorAll('input')].forEach(element => window.getComputedStyle(element, null).getPropertyValue('height'));
         setTimeout(doNextAction, 0);
-        //[...document.querySelectorAll('input')].forEach(element => window.getComputedStyle(element, null).getPropertyValue('height'));
         //doNextAction();
       }
     } catch (error) {
@@ -363,10 +363,6 @@ window.test = () => {
 
   Promise.resolve()
     .then(() => {
-      console.log('Testing JSS Styled...');
-      return testApp(AppJSSStyled);
-    })
-    .then(() => {
       console.log('Testing control...');
       return testApp(AppControl);
     })
@@ -375,21 +371,29 @@ window.test = () => {
       return testApp(AppJSS);
     })
     .then(() => {
-      console.log('Testing JSS 2 (no classnames module)...');
-      return testApp(AppJSS2);
+      console.log('Testing react-jss-custom...');
+      return testApp(AppJSSCustom);
     })
-    .then(() => {
-      console.log('Testing S...');
-      return testApp(AppS);
-    })
-    .then(() => {
-      console.log('Testing S-Styletron...');
-      return testApp(AppStyletron);
-    })
+    //.then(() => {
+      //console.log('Testing JSS 2 (no classnames module)...');
+      //return testApp(AppJSS2);
+    //})
+    //.then(() => {
+      //console.log('Testing JSS Styled...');
+      //return testApp(AppJSSStyled);
+    //})
+    //.then(() => {
+      //console.log('Testing S...');
+      //return testApp(AppS);
+    //})
+    //.then(() => {
+      //console.log('Testing S-Styletron...');
+      //return testApp(AppStyletron);
+    //})
     //.then(() => {
       //console.log('Testing Styletron-React...');
       //return testApp(AppStyletronReact);
     //});
 };
 
-timeMount(AppJSSCustom, configure());
+//timeMount(AppJSSCustom, configure());
