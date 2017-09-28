@@ -1,7 +1,7 @@
 {
-  "scripts": {
-    "watch": "lerna run --parallel watch"
-  },
+	"scripts": {
+		"watch": "lerna run --parallel watch"
+	},
 	"devDependencies": {
 		"eslint": "^4.2.0",
 		"eslint-plugin-react": "^7.1.0",
