@@ -13,7 +13,7 @@ class App extends Component {
     return (
       <JSSProvider>
         <div>
-          <div className={classes.app()}>
+          <div className={classes.app}>
             <Header addTodo={actions.addTodo} />
             <MainSection todos={todos} actions={actions} />
             {children}

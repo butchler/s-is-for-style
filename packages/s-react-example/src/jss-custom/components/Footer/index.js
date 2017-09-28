@@ -15,8 +15,8 @@ class Footer extends Component {
     const itemWord = activeCount === 1 ? 'item' : 'items'
 
     return (
-      <span className={classes.count()}>
-        <strong className={classes.strong()}>{activeCount || 'No'}</strong> {itemWord} left
+      <span className={classes.count}>
+        <strong className={classes.strong}>{activeCount || 'No'}</strong> {itemWord} left
       </span>
     )
   }
@@ -26,7 +26,7 @@ class Footer extends Component {
     const { filter: selectedFilter, onShow, classes } = this.props
 
     return (
-      <a className={classes.filterLink({ isSelected:  filter === selectedFilter })}
+      <a className={classes.filterLink[filter === selectedFilter ? 'selected' : 'default']}
          onClick={() => onShow(filter)}>
         {title}
       </a>
@@ -37,7 +37,7 @@ class Footer extends Component {
     const { completedCount, onClearCompleted, classes } = this.props
     if (completedCount > 0) {
       return (
-        <button className={classes.clearCompleted()} onClick={onClearCompleted}>
+        <button className={classes.clearCompleted} onClick={onClearCompleted}>
           Clear completed
         </button>
       )
@@ -48,11 +48,11 @@ class Footer extends Component {
     const {classes} = this.props;
 
     return (
-      <footer className={classes.footer()}>
+      <footer className={classes.footer}>
         {this.renderTodoCount()}
-        <ul className={classes.filters()}>
+        <ul className={classes.filters}>
           {[SHOW_ALL, SHOW_ACTIVE, SHOW_COMPLETED].map(filter =>
-            <li className={classes.filtersItem()} key={filter}>
+            <li className={classes.filtersItem} key={filter}>
               {this.renderFilterLink(filter)}
             </li>
           )}
@@ -121,11 +121,8 @@ export default withClasses({
 
     ':hover': filterLinkHighlight,
 
-    '@switch': {
-      isSelected: {
-        true: filterLinkHighlight,
-        false: null,
-      },
+    '@variants': {
+      isSelected: filterLinkHighlight,
     },
   },
 

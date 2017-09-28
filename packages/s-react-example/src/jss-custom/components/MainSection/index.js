@@ -35,7 +35,7 @@ class MainSection extends Component {
     const { todos, actions, classes } = this.props
     if (todos.length > 0) {
       return <input
-        className={classes.toggleAll()}
+        className={classes.toggleAll}
         type="checkbox"
         checked={completedCount === todos.length}
         onChange={actions.completeAll} />
@@ -68,9 +68,9 @@ class MainSection extends Component {
     }, 0)
 
     return (
-      <section className={classes.main()}>
+      <section className={classes.main}>
         {this.renderToggleAll(completedCount)}
-        <ul className={classes.list()}>
+        <ul className={classes.list}>
           {filteredTodos.map(todo =>
             <TodoItem key={todo.id} todo={todo} {...actions} />
           )}

@@ -20,7 +20,7 @@ class Header extends Component {
 
     return (
       <header>
-        <h1 className={classes.h1()}>Todos</h1>
+        <h1 className={classes.h1}>Todos</h1>
         <TodoTextInput
           newTodo
           onSave={this.handleSave}

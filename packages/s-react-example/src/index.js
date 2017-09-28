@@ -396,4 +396,4 @@ window.test = () => {
     //});
 };
 
-//timeMount(AppJSSCustom, configure());
+timeMount(AppJSSCustom, configure());

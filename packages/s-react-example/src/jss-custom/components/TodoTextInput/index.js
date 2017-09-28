@@ -38,7 +38,7 @@ class TodoTextInput extends Component {
     const { newTodo, classes } = this.props;
 
     return (
-      <input className={classes.input({ newTodo })}
+      <input className={classes.input[newTodo ? 'newTodo' : 'editing']}
         type="text"
         autoFocus="true"
         placeholder={this.props.placeholder}
@@ -64,19 +64,17 @@ export default withClasses({
     boxSizing: 'border-box',
     fontSmoothing: 'antialiased',
 
-    '@switch': {
+    '@variants': {
       newTodo: {
-        true: {
-          padding: '16px 16px 16px 60px',
-          border: 'none',
-          background: 'rgba(0, 0, 0, 0.003)',
-          boxShadow: 'inset 0 -2px 1px rgba(0, 0, 0, 0.03)',
-        },
-        false: {
-          padding: '6px',
-          border: '1px solid #999',
-          boxShadow: 'inset 0 -1px 5px 0 rgba(0, 0, 0, 0.2)',
-        },
+        padding: '16px 16px 16px 60px',
+        border: 'none',
+        background: 'rgba(0, 0, 0, 0.003)',
+        boxShadow: 'inset 0 -2px 1px rgba(0, 0, 0, 0.03)',
+      },
+      editing: {
+        padding: '6px',
+        border: '1px solid #999',
+        boxShadow: 'inset 0 -1px 5px 0 rgba(0, 0, 0, 0.2)',
       },
     },
   },

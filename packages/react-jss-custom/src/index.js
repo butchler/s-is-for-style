@@ -6,25 +6,34 @@ import presets from 'jss-preset-default';
 const jss = create(presets());
 
 export function withClasses(styleSheet/*, TODO: options */) {
-  const { jssStyleSheet, getJssClassNameArray } = createJssStyleSheet(styleSheet);
+  const { jssStyleSheet, classes } = createJssStyleSheet(styleSheet);
 
   // TODO: Make proper JSS provider.
   const sheet = jss.createStyleSheet(jssStyleSheet).attach();
 
-  const classes = {};
+  const jssClasses = {};
 
   // TODO: Support dynamic style values.
-  Object.keys(styleSheet).forEach(className => {
-    // TODO: Optimize?
-    classes[className] = (data) => getJssClassNameArray[className](data)
-      .map(jssClassName => sheet.classes[jssClassName])
-      .join(' ');
+  objectForEach(classes, (className, classNameOrVariants) => {
+    const jssClassName = sheet.classes[className];
+
+    if (typeof classNameOrVariants === 'string') {
+      jssClasses[className] = jssClassName;
+    } else if (classNameOrVariants && typeof classNameOrVariants === 'object') {
+      jssClasses[className] = {};
+
+      objectForEach(classNameOrVariants, (variantName, variantClassName) => {
+        jssClasses[className][variantName] = `${jssClassName} ${sheet.classes[variantClassName]}`;
+      });
+    } else {
+      throw new Error('Internal error');
+    }
   });
 
   return (WrappedComponent) => {
     // TODO: Add sheet when component is mounted using SheetManager.
     function WithClasses(props) {
-      return <WrappedComponent classes={classes} {...props} />;
+      return <WrappedComponent classes={jssClasses} {...props} />;
     }
 
     WithClasses.displayName = `WithClasses(${WrappedComponent.displayName || WrappedComponent.name || 'undefined'})`;
@@ -45,14 +54,13 @@ JSSProvider.propTypes = {
 };
 
 const STATE_TOP_LEVEL = 'top-level';
-const STATE_SWITCH_CASE = 'switch-case';
+const STATE_VARIANT = 'variant';
 const STATE_MEDIA_QUERY = 'media-query';
 const STATE_PSEUDO_SELECTOR = 'pseudo-selector';
 
 const addClassToJssStyleSheet = ({
-  jssSheetClasses,
-  jssSheetMediaQueries,
-  switchMappings,
+  jssSheets,
+  variantClassNames,
   className,
   block,
   outputBlock,
@@ -60,50 +68,47 @@ const addClassToJssStyleSheet = ({
 }) => {
   if (!outputBlock) {
     throw new Error('Internal error: No outputBlock');
-  } else if (state === STATE_SWITCH_CASE && !block || Object.keys(block).length === 0) {
-    // Allow empty blocks inside switch cases.
+  } else if (state === STATE_VARIANT && !block || Object.keys(block).length === 0) {
+    // Allow empty variant blocks.
     return;
   }
 
-  let hadSwitch = false;
+  let hadVariant = false;
 
   objectForEach(block, (key, value) => {
-    if (hadSwitch) {
-      throw new Error('@switch must be the last block');
+    if (hadVariant) {
+      throw new Error('@variants must be the last block');
     }
 
-    if (key === '@switch') {
+    if (key === '@variants') {
       if (state !== STATE_TOP_LEVEL) {
         // TODO: Show backtrace.
-        throw new Error('@switch blocks are only allowed at the top level of a class block');
+        throw new Error('@variants blocks are only allowed at the top level of a class block');
       }
 
-      hadSwitch = true;
+      hadVariant = true;
 
-      const switchBlocks = value;
-      objectForEach(switchBlocks, (switchValueName, cases) => {
-        switchMappings[switchValueName] = {};
+      // TODO: Throw if there is no 'default' variant.
 
-        // TODO: Verify cases.
-        objectForEach(cases, (caseValue, caseStyleBlock, index) => {
-          // TODO: Add caseValue to caseClassName?
-          const caseClassName = `${className}-${switchValueName}-${index}`;
-          jssSheetClasses[caseClassName] = {};
-          switchMappings[switchValueName][caseValue] = caseClassName;
+      const variantBlocks = value;
+      objectForEach(variantBlocks, (variantName, variantBlock) => {
+        const variantClassName = `${className}-${variantName}`;
 
-          addClassToJssStyleSheet({
-            jssSheetClasses,
-            jssSheetMediaQueries,
-            switchMappings,
-            className: caseClassName,
-            block: caseStyleBlock,
-            outputBlock: jssSheetClasses[caseClassName],
-            state: STATE_SWITCH_CASE,
-          });
+        variantClassNames[variantName] = variantClassName;
+
+        jssSheets.variants[variantClassName] = {};
+
+        addClassToJssStyleSheet({
+          jssSheets,
+          variantClassNames,
+          className: variantClassName,
+          block: variantBlock,
+          outputBlock: jssSheets.variants[variantClassName],
+          state: STATE_VARIANT,
         });
       });
     } else if (/^:[:a-zA-Z]/.test(key)) {
-      if (!(state === STATE_TOP_LEVEL || state === STATE_SWITCH_CASE || state === STATE_MEDIA_QUERY)) {
+      if (!(state === STATE_TOP_LEVEL || state === STATE_VARIANT || state === STATE_MEDIA_QUERY)) {
         throw new Error('Pseudo-selector blocks cannot be nested');
       }
 
@@ -114,34 +119,32 @@ const addClassToJssStyleSheet = ({
       outputBlock[`&${pseudoSelector}`] = {};
 
       addClassToJssStyleSheet({
-        jssSheetClasses,
-        jssSheetMediaQueries,
-        switchMappings,
+        jssSheets,
+        variantClassNames,
         className,
         block: value,
         outputBlock: outputBlock[`&${pseudoSelector}`],
         state: STATE_PSEUDO_SELECTOR,
       });
     } else if (/^@media/.test(key)) {
-      if (!(state === STATE_TOP_LEVEL || state === STATE_SWITCH_CASE)) {
-        throw new Error('@media queries only allowed at top level or in switch cases');
+      if (!(state === STATE_TOP_LEVEL || state === STATE_VARIANT)) {
+        throw new Error('@media queries only allowed at top level or in variants');
       }
 
       const mediaQuery = key;
 
-      if (!jssSheetMediaQueries[mediaQuery]) {
-        jssSheetMediaQueries[mediaQuery] = {};
+      if (!jssSheets.mediaQueries[mediaQuery]) {
+        jssSheets.mediaQueries[mediaQuery] = {};
       }
 
-      jssSheetMediaQueries[mediaQuery][className] = {};
+      jssSheets.mediaQueries[mediaQuery][className] = {};
 
       addClassToJssStyleSheet({
-        jssSheetClasses,
-        jssSheetMediaQueries,
-        switchMappings,
+        jssSheets,
+        variantClassNames,
         className,
         block: value,
-        outputBlock: jssSheetMediaQueries[mediaQuery][className],
+        outputBlock: jssSheets.mediaQueries[mediaQuery][className],
         state: STATE_MEDIA_QUERY,
       });
     } else if (/^[a-zA-Z-]/.test(key)) {
@@ -158,62 +161,48 @@ const addClassToJssStyleSheet = ({
 
 const createJssStyleSheet = (styleSheet) => {
   // Convert our stylesheet syntax to JSS's nested syntax.
-  const jssSheetClasses = {};
-  const jssSheetMediaQueries = {};
-  const getJssClassNameArray = {};
+  const jssSheets = {
+    classes: {},
+    mediaQueries: {},
+    variants: {},
+  };
+
+  const classes = {};
 
   objectForEach(styleSheet, (className, block) => {
-    const switchMappings = {};
+    const variantClassNames = {};
 
-    jssSheetClasses[className] = {};
+    jssSheets.classes[className] = {};
 
     addClassToJssStyleSheet({
-      jssSheetClasses,
-      jssSheetMediaQueries,
-      switchMappings,
+      jssSheets,
+      variantClassNames,
       className,
       block,
-      outputBlock: jssSheetClasses[className],
+      outputBlock: jssSheets.classes[className],
       state: STATE_TOP_LEVEL,
     });
 
-    // TODO: Support dynamic style values.
-    getJssClassNameArray[className] = (data) => {
-      if (!data) {
-        return [className];
-      } else {
-        const result = [className];
+    classes[className] = (
+      Object.keys(variantClassNames).length > 0 ?
+        variantClassNames :
+        className
+    );
 
-        const addClassName = (caseClassName) => caseClassName && result.push(caseClassName);
-
-        objectForEach(switchMappings, (dataKey, cases) => {
-          if (data.hasOwnProperty(dataKey)) {
-            const dataValue = data[dataKey];
-            // TODO: Warn if dataValue is 'default'
-
-            if (typeof dataValue === 'boolean') {
-              addClassName(dataValue ? cases.true : cases.false);
-            } else {
-              addClassName(cases[dataValue] || cases.default || cases.false);
-            }
-          } else {
-            // Data not provided, use default.
-            // TODO: Warn if data is not provided?
-            addClassName(cases.default || cases.false);
-          }
-        });
-
-        return result;
-      }
-    };
+    if (!variantClassNames.default) {
+      variantClassNames.default = className;
+    }
   });
 
   const jssStyleSheet = {
-    ...jssSheetClasses,
-    ...jssSheetMediaQueries,
+    ...jssSheets.classes,
+    ...jssSheets.mediaQueries,
+    ...jssSheets.variants,
   };
 
-  return { jssStyleSheet, getJssClassNameArray };
+  console.log({ jssStyleSheet, classes });
+
+  return { jssStyleSheet, classes };
 };
 
 const objectForEach = (object, callback) => {

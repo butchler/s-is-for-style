@@ -40,22 +40,22 @@ class TodoItem extends Component {
     } else {
       element = (
         <div>
-          <input className={classes.toggle()}
+          <input className={classes.toggle}
              type="checkbox"
              checked={todo.completed}
              onChange={() => completeTodo(todo.id)} />
 
-          <label className={classes.label({ completed: todo.completed })} onDoubleClick={this.handleDoubleClick}>
+          <label className={classes.label[todo.completed ? 'completed' : 'default']} onDoubleClick={this.handleDoubleClick}>
             {todo.text}
           </label>
 
-          <button className={classes.destroy() + ' destroy'} onClick={() => deleteTodo(todo.id)} />
+          <button className={classes.destroy + ' destroy'} onClick={() => deleteTodo(todo.id)} />
         </div>
       )
     }
 
     return (
-      <li className={classes.item({ editing })}>
+      <li className={classes.item.editing}>
         {element}
       </li>
     )
@@ -75,20 +75,18 @@ export default withClasses({
       display: 'block',
     },
 
-    '@switch': {
+    '@variants': {
       editing: {
-        true: {
-          borderBottom: 'none',
-          padding: 0,
-          composes: 'normal',
+        borderBottom: 'none',
+        padding: 0,
+        composes: 'normal',
 
-          ':last-child': {
-            marginBottom: '-1px',
-          },
+        ':last-child': {
+          marginBottom: '-1px',
         },
-        false: {
-          borderBottom: '1px solid #ededed',
-        },
+      },
+      default: {
+        borderBottom: '1px solid #ededed',
       },
     },
   },
@@ -131,14 +129,12 @@ export default withClasses({
     lineHeight: '1.2',
     transition: 'color 0.4s',
 
-    '@switch': {
+    '@variants': {
       completed: {
-        true: {
-          color: '#d9d9d9',
-          textDecoration: 'line-through',
-        },
-        false: null,
+        color: '#d9d9d9',
+        textDecoration: 'line-through',
       },
+      default: null,
     },
   },
 
