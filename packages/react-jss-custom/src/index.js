@@ -146,18 +146,24 @@ const addClassToJssStyleSheet = ({
 
       const mediaQuery = key;
 
-      if (!jssSheets.mediaQueries[mediaQuery]) {
-        jssSheets.mediaQueries[mediaQuery] = {};
+      const mediaQuerySheet = (
+        state === STATE_VARIANT ?
+          jssSheets.variantMediaQueries :
+          jssSheets.mediaQueries
+      );
+
+      if (!mediaQuerySheet[mediaQuery]) {
+        mediaQuerySheet[mediaQuery] = {};
       }
 
-      jssSheets.mediaQueries[mediaQuery][className] = {};
+      mediaQuerySheet[mediaQuery][className] = {};
 
       addClassToJssStyleSheet({
         jssSheets,
         variantClassNames,
         className,
         block: value,
-        outputBlock: jssSheets.mediaQueries[mediaQuery][className],
+        outputBlock: mediaQuerySheet[mediaQuery][className],
         state: STATE_MEDIA_QUERY,
       });
     } else if (/^[a-zA-Z-]/.test(key)) {
@@ -178,6 +184,7 @@ const createJssStyleSheet = (styleSheet) => {
     classes: {},
     mediaQueries: {},
     variants: {},
+    variantMediaQueries: {},
   };
 
   const classes = {};
@@ -207,9 +214,10 @@ const createJssStyleSheet = (styleSheet) => {
     ...jssSheets.classes,
     ...jssSheets.mediaQueries,
     ...jssSheets.variants,
+    ...jssSheets.variantMediaQueries,
   };
 
-  console.log({ jssStyleSheet, classes });
+  console.log({ jssStyleSheet, jssSheets, classes });
 
   return { jssStyleSheet, classes };
 };

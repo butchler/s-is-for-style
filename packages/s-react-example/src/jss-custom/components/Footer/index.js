@@ -123,7 +123,11 @@ export default withClasses({
 
     '@variants': {
       selected: filterLinkHighlight,
-      default: null,
+      default: {
+        '@media (max-width: 1000px)': {
+          color: 'red',
+        },
+      },
     },
   },
 
