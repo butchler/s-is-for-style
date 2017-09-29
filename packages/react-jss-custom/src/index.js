@@ -14,19 +14,32 @@ export function withClasses(styleSheet/*, TODO: options */) {
   const jssClasses = {};
 
   // TODO: Support dynamic style values.
-  objectForEach(classes, (className, classNameOrVariants) => {
+  objectForEach(classes, (className, variants) => {
     const jssClassName = sheet.classes[className];
 
-    if (typeof classNameOrVariants === 'string') {
+    if (!variants) {
       jssClasses[className] = jssClassName;
-    } else if (classNameOrVariants && typeof classNameOrVariants === 'object') {
-      jssClasses[className] = {};
-
-      objectForEach(classNameOrVariants, (variantName, variantClassName) => {
-        jssClasses[className][variantName] = `${jssClassName} ${sheet.classes[variantClassName]}`;
-      });
     } else {
-      throw new Error('Internal error');
+      const jssVariants = {};
+
+      objectForEach(variants, (variantName, variantClassName) => {
+        const variantJssClassName = sheet.classes[variantClassName];
+        jssVariants[variantName] = (
+          variantJssClassName ?
+            `${jssClassName} ${variantJssClassName}` :
+            jssClassName
+        );
+      });
+
+      jssClasses[className] = (variantName) => {
+        const fullClassName = jssVariants[variantName];
+
+        if (!fullClassName) {
+          console.warn(`Invalid variant ${variantName}`);
+        }
+
+        return fullClassName;
+      };
     }
   });
 
@@ -68,9 +81,6 @@ const addClassToJssStyleSheet = ({
 }) => {
   if (!outputBlock) {
     throw new Error('Internal error: No outputBlock');
-  } else if (state === STATE_VARIANT && !block || Object.keys(block).length === 0) {
-    // Allow empty variant blocks.
-    return;
   }
 
   let hadVariant = false;
@@ -88,7 +98,7 @@ const addClassToJssStyleSheet = ({
 
       hadVariant = true;
 
-      // TODO: Throw if there is no 'default' variant.
+      // TODO: Throw if there is only one variant.
 
       const variantBlocks = value;
       objectForEach(variantBlocks, (variantName, variantBlock) => {
@@ -96,16 +106,19 @@ const addClassToJssStyleSheet = ({
 
         variantClassNames[variantName] = variantClassName;
 
-        jssSheets.variants[variantClassName] = {};
+        // Don't add CSS for empty variants.
+        if (variantBlock) {
+          jssSheets.variants[variantClassName] = {};
 
-        addClassToJssStyleSheet({
-          jssSheets,
-          variantClassNames,
-          className: variantClassName,
-          block: variantBlock,
-          outputBlock: jssSheets.variants[variantClassName],
-          state: STATE_VARIANT,
-        });
+          addClassToJssStyleSheet({
+            jssSheets,
+            variantClassNames,
+            className: variantClassName,
+            block: variantBlock,
+            outputBlock: jssSheets.variants[variantClassName],
+            state: STATE_VARIANT,
+          });
+        }
       });
     } else if (/^:[:a-zA-Z]/.test(key)) {
       if (!(state === STATE_TOP_LEVEL || state === STATE_VARIANT || state === STATE_MEDIA_QUERY)) {
@@ -186,12 +199,8 @@ const createJssStyleSheet = (styleSheet) => {
     classes[className] = (
       Object.keys(variantClassNames).length > 0 ?
         variantClassNames :
-        className
+        undefined
     );
-
-    if (!variantClassNames.default) {
-      variantClassNames.default = className;
-    }
   });
 
   const jssStyleSheet = {

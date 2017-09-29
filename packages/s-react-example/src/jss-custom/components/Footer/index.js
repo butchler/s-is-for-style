@@ -26,7 +26,7 @@ class Footer extends Component {
     const { filter: selectedFilter, onShow, classes } = this.props
 
     return (
-      <a className={classes.filterLink[filter === selectedFilter ? 'selected' : 'default']}
+      <a className={classes.filterLink(filter === selectedFilter ? 'selected' : 'default')}
          onClick={() => onShow(filter)}>
         {title}
       </a>
@@ -122,7 +122,8 @@ export default withClasses({
     ':hover': filterLinkHighlight,
 
     '@variants': {
-      isSelected: filterLinkHighlight,
+      selected: filterLinkHighlight,
+      default: null,
     },
   },
 

@@ -38,7 +38,7 @@ class TodoTextInput extends Component {
     const { newTodo, classes } = this.props;
 
     return (
-      <input className={classes.input[newTodo ? 'newTodo' : 'editing']}
+      <input className={classes.input(newTodo ? 'newTodo' : 'editing')}
         type="text"
         autoFocus="true"
         placeholder={this.props.placeholder}

@@ -45,7 +45,7 @@ class TodoItem extends Component {
              checked={todo.completed}
              onChange={() => completeTodo(todo.id)} />
 
-          <label className={classes.label[todo.completed ? 'completed' : 'default']} onDoubleClick={this.handleDoubleClick}>
+          <label className={classes.label(todo.completed ? 'completed' : 'default')} onDoubleClick={this.handleDoubleClick}>
             {todo.text}
           </label>
 
@@ -55,7 +55,7 @@ class TodoItem extends Component {
     }
 
     return (
-      <li className={classes.item.editing}>
+      <li className={classes.item('editing')}>
         {element}
       </li>
     )
