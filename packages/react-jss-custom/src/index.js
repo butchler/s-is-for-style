@@ -5,17 +5,57 @@ import presets from 'jss-preset-default';
 
 const jss = create(presets());
 
-export function withClasses(styleSheet/*, TODO: options */) {
+export function withClasses(styleSheet, options = {}) {
+  const { dynamicValues = true } = options;
+
   const { jssStyleSheet, classes } = createJssStyleSheet(styleSheet);
 
+  const { jssClasses: staticJssClasses } = (
+    !dynamicValues ?
+      createJSSClasses(jssStyleSheet, classes, false) :
+      {}
+  );
+
+  return (WrappedComponent) => {
+    // TODO: Add sheet when component is mounted using SheetManager.
+    class WithClasses extends React.Component {
+      componentWillMount() {
+        if (dynamicValues) {
+          const { jssClasses, jssSheet } = createJSSClasses(jssStyleSheet, classes, true);
+          this.jssClasses = jssClasses;
+          this.jssSheet = jssSheet;
+
+          this.jssSheet.update(this.props);
+        }
+      }
+
+      componentWillReceiveProps(nextProps) {
+        if (dynamicValues) {
+          this.jssSheet.update(nextProps);
+        }
+      }
+
+      render() {
+        const jssClasses = dynamicValues ? this.jssClasses : staticJssClasses;
+
+        return <WrappedComponent classes={jssClasses} {...this.props} />;
+      }
+    }
+
+    WithClasses.displayName = `WithClasses(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+
+    return WithClasses;
+  };
+}
+
+const createJSSClasses = (jssStyleSheet, classes, dynamicValues) => {
   // TODO: Make proper JSS provider.
-  const sheet = jss.createStyleSheet(jssStyleSheet).attach();
+  const jssSheet = jss.createStyleSheet(jssStyleSheet, { link: dynamicValues }).attach();
 
   const jssClasses = {};
 
-  // TODO: Support dynamic style values.
   objectForEach(classes, (className, variants) => {
-    const jssClassName = sheet.classes[className];
+    const jssClassName = jssSheet.classes[className];
 
     if (!variants) {
       jssClasses[className] = jssClassName;
@@ -23,7 +63,7 @@ export function withClasses(styleSheet/*, TODO: options */) {
       const jssVariants = {};
 
       objectForEach(variants, (variantName, variantClassName) => {
-        const variantJssClassName = sheet.classes[variantClassName];
+        const variantJssClassName = jssSheet.classes[variantClassName];
         jssVariants[variantName] = (
           variantJssClassName ?
             `${jssClassName} ${variantJssClassName}` :
@@ -43,17 +83,8 @@ export function withClasses(styleSheet/*, TODO: options */) {
     }
   });
 
-  return (WrappedComponent) => {
-    // TODO: Add sheet when component is mounted using SheetManager.
-    function WithClasses(props) {
-      return <WrappedComponent classes={jssClasses} {...props} />;
-    }
-
-    WithClasses.displayName = `WithClasses(${WrappedComponent.displayName || WrappedComponent.name || 'undefined'})`;
-
-    return WithClasses;
-  };
-}
+  return { jssClasses, jssSheet };
+};
 
 // TODO: Make proper JSS provider.
 export class JSSProvider extends Component {

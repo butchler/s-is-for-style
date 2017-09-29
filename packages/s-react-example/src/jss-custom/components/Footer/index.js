@@ -76,6 +76,8 @@ export default withClasses({
     height: '20px',
     textAlign: 'center',
     borderTop: '1px solid #e6e6e6',
+    // Test dynamic values
+    borderBottom: ({ activeCount }) => `${activeCount * 10}px solid #e6e6e6`,
 
     ':before': {
       content: '""',
@@ -124,6 +126,7 @@ export default withClasses({
     '@variants': {
       selected: filterLinkHighlight,
       default: {
+        // Test variants with @media queries
         '@media (max-width: 1000px)': {
           color: 'red',
         },
@@ -172,4 +175,6 @@ export default withClasses({
       textDecoration: 'underline',
     },
   },
+}, {
+  dynamicValues: true,
 })(Footer)
